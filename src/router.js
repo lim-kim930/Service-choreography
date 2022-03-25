@@ -9,7 +9,7 @@ import usersManage from "./components/usersManage.vue";
 
 const router = new VueRouter({
     routes: [ // 路由规则
-        { path: "/", redirect: "/dashboard" },
+        { path: "/", redirect: "/productMange" },
         { path: "/productMange", component: productMange },
         {
             path: "/workflow",

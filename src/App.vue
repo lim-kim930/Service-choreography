@@ -74,7 +74,7 @@ export default {
       activeIndex: "dashboard",
       logoSrc: "https://limkim.cn/logo.png",
       wh: 0
-    }
+    };
   },
   components: {
     Icon,
@@ -89,10 +89,10 @@ export default {
       this.collapsed = !this.collapsed;
       if (this.collapsed)
         setTimeout(() => {
-          this.logoSrc = "https://limkim.cn/logo_icon.png"
-        }, 300)
+          this.logoSrc = "https://limkim.cn/logo_icon.png";
+        }, 300);
       else
-        this.logoSrc = "https://limkim.cn/logo.png"
+        this.logoSrc = "https://limkim.cn/logo.png";
     },
     indexRouteSwitch(index) {
       switch (index) {
@@ -115,9 +115,6 @@ export default {
     },
     redirect() {
       switch (this.$route.path) {
-        case "/dashboard":
-          this.activeIndex = "dashboard";
-          break;
         case "/productMange":
           this.activeIndex = "productMange";
           break;

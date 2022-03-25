@@ -1,5 +1,5 @@
 <template>
-  <div style="text-align: left; padding-left: 0">
+  <div class="workArea">
     <h3>
       <div class="item">
         <t-button shape="circle" variant="text">
@@ -7,7 +7,8 @@
         </t-button>新建工作流
       </div>
     </h3>
-    <div class="nodes">
+    <div class="workArea_content">
+      <div class="nodes">
       <div class="control_header">原子服务</div>
       <div class="control">
         <div @mousedown="addDragNode" data-type="Task">
@@ -43,35 +44,36 @@
         </div>
         <!-- <div @mousedown="addDragNode" data-type="Map">循环节点</div> -->
       </div>
+      </div>
+      <div class="flow_container" ref="container"></div>
+      <t-drawer
+        :visible="visible"
+        :showOverlay="false"
+        @close="handleClose"
+        :onConfirm="handleConfirm"
+        header="抽屉标题"
+      >
+        <div class="t-drawer-demo-div">
+          <span>节点名称</span>
+          <t-input v-model="form.Name" />
+        </div>
+        <div class="t-drawer-demo-div">
+          <span>备注描述</span>
+          <t-textarea v-model="form.Comment" placeholder="请输入描述" />
+        </div>
+        <div class="t-drawer-demo-div">
+          <span>原子服务</span>
+          <t-select v-model="form.Resource" :options="resources" placeholder="请选择" />
+        </div>
+      </t-drawer>
+      <vue-json-editor
+        v-model="inputJson"
+        :showBtns="false"
+        :mode="'code'"
+        @json-change="onJsonChange"
+        lang="zh"
+      />
     </div>
-    <div class="flow_container" ref="container"></div>
-    <t-drawer
-      :visible="visible"
-      :showOverlay="false"
-      @close="handleClose"
-      :onConfirm="handleConfirm"
-      header="抽屉标题"
-    >
-      <div class="t-drawer-demo-div">
-        <span>节点名称</span>
-        <t-input v-model="form.Name" />
-      </div>
-      <div class="t-drawer-demo-div">
-        <span>备注描述</span>
-        <t-textarea v-model="form.Comment" placeholder="请输入描述" />
-      </div>
-      <div class="t-drawer-demo-div">
-        <span>原子服务</span>
-        <t-select v-model="form.Resource" :options="resources" placeholder="请选择" />
-      </div>
-    </t-drawer>
-    <vue-json-editor
-      v-model="inputJson"
-      :showBtns="false"
-      :mode="'code'"
-      @json-change="onJsonChange"
-      lang="zh"
-    />
     <t-button shape="circle" variant="text" @click="getData">
       <icon name="chevron-left"></icon>
     </t-button>新建工作流
@@ -369,7 +371,7 @@ export default {
         },
         {
           "id": "4baa97dc-9eb3-4b95-ad7b-15a79c942bc1",
-          "type": "Choice",
+          "type": "Pass",
           "x": 360,
           "y": 220,
           "properties": {
@@ -560,6 +562,7 @@ export default {
                 conditionDia.destroy();
               },
               onCancel: () => {
+                console.log();
                 // this.inputJson.States[args.data.properties.Name].Default = 
                 this.lf.graphModel.addNode({
                   id: "node_" + args.data.y + 80,
@@ -633,6 +636,17 @@ export default {
 </script>
 
 <style scoped>
+.workArea {
+  text-align: left;
+  padding-left: 0;
+}
+.workArea h3 {
+  margin: 0;
+}
+.workArea_content {
+  display: flex;
+  height: 650px;
+  }
 .control_header {
   width: 100%;
   height: 40px;
@@ -658,16 +672,15 @@ export default {
   vertical-align: middle;
 }
 .nodes {
-  border: 1px solid #ccc;
   width: 250px;
   height: 650px;
   float: left;
+  border: 1px solid #d8d8d8;
 }
 .flow_container {
   float: left;
   width: 800px;
   height: 650px;
-  border: 1px solid #d8d8d8;
 }
 </style>
 
