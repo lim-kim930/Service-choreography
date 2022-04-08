@@ -10,8 +10,9 @@
   "dependencies": {
     "@logicflow/core": "^1.0.7",
     "@logicflow/extension": "^1.0.7",
-    "codemirror": "^5.65.2",
+    "axios": "^0.26.1",
     "core-js": "^3.6.5",
+    "protobufjs": "^6.11.2",
     "tdesign-vue": "^0.34.0",
     "vue": "^2.6.11",
     "vue-json-editor": "^1.4.3",

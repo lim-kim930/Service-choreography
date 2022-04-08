@@ -4,12 +4,7 @@
     <t-button theme="primary" @click="dialogVisible = true">
       <add-icon slot="icon" name="AddIcon" />新增
     </t-button>
-    <t-table
-      rowKey="index"
-      :data="worksData"
-      :columns="columns"
-      :hover="true"
-    >
+    <t-table rowKey="index" :data="worksData" :columns="columns" :hover="true">
       <template #op-column>
         <p>操作</p>
       </template>
@@ -19,12 +14,7 @@
         <a class="link delete" @click="rehandleClickOp(slotProps)">删除</a>
       </template>
     </t-table>
-    <t-dialog
-      header="新增用户"
-      :visible="dialogVisible"
-      :onClose="closeDialog"
-      :onConfirm="createFlow"
-    >
+    <t-dialog header="新增用户" :visible="dialogVisible" :onClose="closeDialog" :onConfirm="createFlow">
       <div slot="body">
         <t-form :data="formData" ref="form" :colon="true">
           <t-form-item requiredMark :required="true" label="账号" name="name">
@@ -110,7 +100,7 @@ export default {
           expandIcon: (h) => h && <ChevronRightIcon />,
         },
       },
-    }
+    };
   },
   components: { AddIcon },
   methods: {
@@ -134,7 +124,7 @@ export default {
       console.log(6666);
     }
   }
-}
+};
 </script>
 
 <style scoped lang="less">

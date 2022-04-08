@@ -12,13 +12,13 @@
         />
         <template #operations>
           <a href="javascript:;">
-            <icon class="t-menu__operations-icon" name="search" />
+            <icon class="t-menu__operations-icon" name="mail" />
           </a>
           <a href="javascript:;">
-            <icon class="t-menu__operations-icon" name="notification-filled" />
+            <icon class="t-menu__operations-icon" name="user" />
           </a>
           <a href="javascript:;">
-            <icon class="t-menu__operations-icon" name="home" />
+            <icon class="t-menu__operations-icon" name="logout" />
           </a>
         </template>
       </t-head-menu>
@@ -40,10 +40,13 @@
             <icon slot="icon" name="root-list" />原子服务管理
           </t-menu-item>
           <t-menu-item value="workflow">
-            <icon slot="icon" name="logo-codepen" />服务编排
+            <icon slot="icon" name="fork" />服务编排
           </t-menu-item>
           <t-menu-item value="deploy">
-            <icon slot="icon" name="server" />服务部署
+            <icon slot="icon" name="server" />部署管理
+          </t-menu-item>
+          <t-menu-item value="traceSource">
+            <icon slot="icon" name="history" />业务溯源
           </t-menu-item>
           <t-menu-item value="usersManage">
             <icon slot="icon" name="usergroup" />用户管理
@@ -72,13 +75,11 @@ export default {
     return {
       collapsed: false,
       activeIndex: "dashboard",
-      logoSrc: "https://limkim.cn/logo.png",
+      logoSrc: "http://asw.limkim.cn/logo.png",
       wh: 0
     };
   },
-  components: {
-    Icon,
-  },
+  components: { Icon },
   computed: {
     iconName() {
       return this.collapsed ? 'chevron-right' : 'chevron-left';
@@ -89,10 +90,10 @@ export default {
       this.collapsed = !this.collapsed;
       if (this.collapsed)
         setTimeout(() => {
-          this.logoSrc = "https://limkim.cn/logo_icon.png";
+          this.logoSrc = "http://asw.limkim.cn/logo_icon.png";
         }, 300);
       else
-        this.logoSrc = "https://limkim.cn/logo.png";
+        this.logoSrc = "http://asw.limkim.cn/logo.png";
     },
     indexRouteSwitch(index) {
       switch (index) {
@@ -107,6 +108,9 @@ export default {
           break;
         case "deploy":
           this.$router.push("/deploy");
+          break;
+        case "traceSource":
+          this.$router.push("/traceSource");
           break;
         case "usersManage":
           this.$router.push("/usersManage");
@@ -128,6 +132,9 @@ export default {
         case "/deploy":
           this.activeIndex = "deploy";
           break;
+        case "/traceSource":
+          this.activeIndex = "traceSource";
+          break;
         case "/usersManage":
           this.activeIndex = "usersManage";
           break;
@@ -144,7 +151,12 @@ export default {
       this.wh = this.windowHeight() < 600 ? 600 : this.windowHeight();
     };
     this.redirect();
-  }
+  },
+  watch: {
+    $route() {
+      this.redirect();
+    }
+  },
 };
 </script>
 <style lang="less" scoped>

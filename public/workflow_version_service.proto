@@ -1,0 +1,82 @@
+
+syntax = "proto3";
+
+package workflow_version_grpc;
+option go_package = "workflow_version_service/grpc/def";
+
+service WorkflowVersionService{
+  rpc TempSave(TempSaveRequest) returns(TempSaveResponse){}
+  rpc AddPublishVersionProposal(AddPublishVersionProposalRequest) returns(AddPublishVersionProposalResponse){}
+  rpc VoteForVersion(VoteForProposalRequest) returns(VoteForProposalResponse){}
+  rpc GetProposalInfo(GetProposalInfoRequest) returns(GetProposalInfoResponse){}
+  rpc ListProposalInfo(ListProposalInfoRequest) returns(ListProposalInfoResponse){}
+  rpc ListVersionInfo(ListVersionInfoRequest) returns(ListVersionInfoResponse){}
+}
+
+message TempSaveRequest{
+  uint32 ID=1;
+  string WorkingASLInput=2;
+}
+
+message TempSaveResponse{
+
+}
+
+message AddPublishVersionProposalRequest{
+  uint32 WorkflowID=1;
+  string VersionName=2;
+  string Message=3;
+}
+
+message AddPublishVersionProposalResponse{
+  uint32 ProposalID=1;
+}
+
+message ProposalInfoResponse{
+  uint32 ProposalID=1;
+  string CreatedAt=2;
+  string VersionName=3;
+  string Message=4;
+  string ASLInput=5;
+}
+
+message VoteForProposalRequest{
+  string ProposalID=1;
+  int32 Option=2; //投票选项，0代表不认可，1代表认可
+  string ExtraMessage=3;
+}
+
+message VoteForProposalResponse{
+  uint32 VoteRecordID=1;
+}
+
+message GetProposalInfoRequest{
+  uint32 ProposalID=1;
+}
+
+message GetProposalInfoResponse{
+  ProposalInfoResponse ProposalInfo=1;
+}
+
+message ListProposalInfoRequest{
+  uint32 WorkflowID=1;
+}
+
+message ListProposalInfoResponse{
+  repeated ProposalInfoResponse List=1;
+}
+
+
+message ListVersionInfoRequest{
+  uint32 WorkflowID=1;
+}
+
+message ListVersionInfoResponse{
+
+}
+
+
+
+
+
+

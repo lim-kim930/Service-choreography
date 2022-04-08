@@ -1,0 +1,49 @@
+
+syntax = "proto3";
+
+package workflow_grpc;
+option go_package = "workflow_service/grpc/def";
+
+service WorkflowService{
+  rpc AddWorkflow(AddWorkflowRequest) returns(AddWorkflowResponse){}
+
+  rpc DeleteWorkflow(DeleteWorkflowRequest) returns(DeleteWorkflowResponse){}
+  rpc ListWorkflowInfo(ListWorkflowInfoRequest) returns(ListWorkflowInfoResponse){}
+}
+
+message AddWorkflowRequest{
+  string Name=2;
+  string ProductID=3; //绑定到的产品ID
+}
+
+message AddWorkflowResponse{
+  uint32 ID=1;
+}
+
+message DeleteWorkflowRequest{
+  uint32 ID=1;
+}
+
+message DeleteWorkflowResponse{
+
+}
+
+message ListWorkflowInfoRequest{
+
+}
+
+message WorkflowInfoResponse{
+  uint32 ID=1;
+  string Name=2;
+  string WorkingASLInput=3;
+}
+
+message ListWorkflowInfoResponse{
+  repeated WorkflowInfoResponse List=1;
+}
+
+
+
+
+
+

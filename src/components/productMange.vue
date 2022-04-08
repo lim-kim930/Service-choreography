@@ -1,44 +1,123 @@
 <template>
-  <div style="text-align: left">
+  <div style="text-align: left;padding: 10px">
     <h3>产品列表</h3>
-    <t-button theme="primary" @click="dialogVisible = true">
+    <t-button theme="primary" @click="openAddDialog">
       <add-icon slot="icon" name="AddIcon" />新增
     </t-button>
     <t-table
       empty="当前还没有产品"
       rowKey="index"
-      :data="worksData"
+      :data="productsData"
       :columns="columns"
-      :maxHeight="wh - 320"
       :hover="true"
-      :expanded-row-keys="expandedRowKeys"
+      :expandOnRowClick="false"
       :expanded-row="expandedRow"
-      @expand-change="rehandleExpandChange"
-      :expandOnRowClick="expandOnRowClick"
     >
       <template #status="{ row }">
         <p v-if="row.status === 0" class="status">已发布</p>
         <p v-if="row.status === 1" class="status unhealth">未发布</p>
-      </template>
-      <template #op-column>
-        <p>操作</p>
+        <p v-if="row.status === 2" class="status warning">投票中</p>
+        <p v-if="row.status === 3" class="status error">未通过</p>
       </template>
       <template #op="slotProps">
-        <a class="link" @click="rehandleClickOp(slotProps)">修改</a>
+        <a v-if="slotProps.row.status === 1" class="link" @click="editProduct(slotProps)">修改</a>
+        <span v-if="slotProps.row.status === 1" style="display: inline-block; width: 10px"></span>
+        <!-- <a v-if="slotProps.row.status === 1" class="link" @click="editProduct(slotProps)">发布</a> -->
         <span style="display: inline-block; width: 10px"></span>
-        <a class="link delete" @click="rehandleClickOp(slotProps)">删除</a>
+        <a
+          v-if="slotProps.row.status === 1"
+          class="link delete"
+          @click="deleteProduct(slotProps)"
+        >删除</a>
+        <a
+          v-if="slotProps.row.status === 0"
+          class="link delete"
+          @click="deleteProduct(slotProps)"
+        >下线</a>
+      </template>
+      <template #workflow="{ row }">
+        <p
+          v-if="row.workflow === null"
+          class="status unhealth"
+          style="cursor: pointer; width: 120px;"
+          @click="goWorkflow(row)"
+        >未绑定(点击编排)</p>
+        <p
+          v-if="row.workflow !== null"
+          :style="{width: row.workflow.length*15 + 60 + 'px', 'margin-left': (152-(row.workflow.length*15))/2 + 'px'}"
+          class="status"
+        >
+          {{row.workflow}}
+          <span
+            style="color: #ccc;cursor: pointer;"
+            @click="goWorkflowEdit(row)"
+          >点击编辑</span>
+        </p>
       </template>
     </t-table>
-    <t-dialog
-      header="新建产品"
-      :visible="dialogVisible"
-      :onClose="closeDialog"
-      :onConfirm="createFlow"
-    >
-      <div slot="body">
+    <t-dialog header="新建产品" :visible="dialogVisible" :onClose="closeDialog" :onConfirm="addProduct">
+      <div id="dialog" slot="body">
         <t-form :data="formData" ref="form" :colon="true">
           <t-form-item requiredMark :required="true" label="产品名称" name="name">
-            <t-input clearable v-model="formData.name" placeholder="请输入"></t-input>
+            <t-input clearable v-model="formData.name" placeholder="请输入" style="width: 300px"></t-input>
+          </t-form-item>
+          <t-form-item requiredMark :required="true" label="产品类型" name="name">
+            <t-select v-model="formData.type" style="width: 200px">
+              <t-option value="定期存款" label="定期存款" key="定期存款"></t-option>
+              <t-option value="通知存款" label="通知存款" key="通知存款"></t-option>
+            </t-select>
+          </t-form-item>
+          <t-form-item requiredMark :required="true" label="起存金额" name="name">
+            <t-input-number
+              v-model="formData.money"
+              placeholder="请输入"
+              theme="normal"
+              :max="1000000"
+              :min="1"
+            ></t-input-number>
+            <span style="margin-left: 5px">元</span>
+          </t-form-item>
+          <t-form-item requiredMark :required="true" label="产品存期" name="name">
+            <t-input-number
+              v-model="formData.time"
+              placeholder="请输入"
+              theme="normal"
+              :max="10000"
+              :min="1"
+            ></t-input-number>
+            <span style="margin-left: 5px">
+              <t-select v-model="formData.timeType">
+                <t-option value="天" label="天" key="day"></t-option>
+                <t-option value="月" label="月" key="month"></t-option>
+                <t-option value="年" label="年" key="year"></t-option>
+              </t-select>
+            </span>
+          </t-form-item>
+          <t-form-item requiredMark :required="true" label="购买递增金额" name="name">
+            <t-input-number
+              v-model="formData.add"
+              placeholder="请输入"
+              theme="normal"
+              :max="1000000"
+              :min="1"
+            ></t-input-number>
+          </t-form-item>
+          <t-form-item requiredMark :required="true" label="利率(%)" name="name">
+            <t-input-number
+              style="width: 200px"
+              v-model="formData.rate"
+              :max="15"
+              :min="0.01"
+              theme="normal"
+              :decimalPlaces="4"
+              :format="value => `${value}%`"
+            ></t-input-number>
+          </t-form-item>
+          <t-form-item requiredMark :required="true" label="结息方式" name="name">
+            <t-select v-model="formData.method">
+              <t-option value="按季度" label="按季度" key="day"></t-option>
+              <t-option value="按定期周期" label="按定期周期" key="month"></t-option>
+            </t-select>
           </t-form-item>
           <t-form-item label="描述/介绍" name="description">
             <t-textarea
@@ -63,42 +142,20 @@ export default {
     return {
       expandControl: 'true',
       expandIcon: true,
-      expandOnRowClick: true,
       dialogVisible: false,
-      worksData: [{
-        index: 1,
-        name: "产品1",
-        description: "这是描述1这是描述1这是描述1这是描述1这是描述1",
-        createAt: "2022-01-01 09:00",
-        workflow: "工作流2",
-        money: 10000,
-        status: 0,
-        time: "4",
-        add: 1000,
-        method: "按季度"
-      },{
-        index: 2,
-        name: "产品2",
-        description: "这是描述2这是描述2这是描述2这是描述2这是描述2",
-        createAt: "2022-01-01 09:00",
-        workflow: "工作流1",
-        status: 1,
-        money: 3000,
-        time: "2",
-        add: 1000,
-        method: "按定期周期"
-      }],
+      productsData: [],
       formData: {
         name: "",
-        description: ""
+        type: "",
+        description: "",
+        money: 0,
+        time: 0,
+        timeType: "月",
+        add: 0,
+        method: "",
+        rate: 0
       },
       columns: [
-        {
-          align: 'center',
-          width: '100',
-          colKey: 'index',
-          title: '序号'
-        },
         {
           align: 'center',
           colKey: 'name',
@@ -107,19 +164,34 @@ export default {
         {
           align: 'center',
           colKey: 'status',
-          width: 100,
           title: '状态',
-          cell: 'status'
+          cell: 'status',
+          width: 100
+        },
+        {
+          align: 'center',
+          colKey: 'workflow',
+          title: '工作流',
+          cell: 'workflow',
+          width: 250
+        },
+        {
+          align: 'center',
+          colKey: 'type',
+          title: '产品类型',
+          width: 200
         },
         {
           align: 'center',
           colKey: 'time',
-          title: '产品存期(年)',
+          title: '产品存期(月)',
+          width: 200
         },
         {
           align: 'center',
-          colKey: 'money',
-          title: '起存金额(元)',
+          colKey: 'rate',
+          title: '利率',
+          width: 200
         },
         {
           align: 'center',
@@ -128,34 +200,39 @@ export default {
         },
         {
           align: 'center',
-          colKey: 'workflow',
-          title: '工作流'
-        },
-        {
-          align: 'center',
           colKey: 'op',
-          title: 'op-column',
+          title: '操作',
           cell: 'op'
         }
       ],
-      expandedRowKeys: ['2'],
-      // defaultExpandedRowKeys: ['2', 4],
       expandedRow: (h, { row }) => (
         <div class="more-detail">
           <p class="title">
             <b>产品介绍:</b>
           </p>
-          <p class="content">{row.description}</p>
-          <br />
-          <p class="title">
-            <b>购买递增金额:</b>
-          </p>
-          <p class="content">{row.add}</p>
-          <br />
-          <p class="title">
-            <b>结息方式:</b>
-          </p>
-          <p class="content">{row.method}</p>
+          <p>{row.description || "暂无"}</p>
+          <div class="data-details">
+            <span class="title">
+              <b>利率:</b>
+            </span>
+            <span class="content">{row.rate.toFixed(4) + "%"}</span>
+            <span class="title">
+              <b>产品存期</b>
+            </span>
+            <span class="content">{row.time + (row.timeType==="月"?"个月":row.timeType)}</span>
+            <span class="title">
+              <b>起存金额:</b>
+            </span>
+            <span class="content">{row.money}元</span>
+            <span class="title">
+              <b>购买递增金额:</b>
+            </span>
+            <span class="content">{row.add}元</span>
+            <span class="title">
+              <b>结息方式:</b>
+            </span>
+            <span class="content">{row.method}</span>
+          </div>
         </div>
       ),
       globalLocale: {
@@ -163,17 +240,66 @@ export default {
           expandIcon: (h) => h && <ChevronRightIcon />,
         },
       },
-    }
+    };
   },
   props: ["wh"],
   components: { AddIcon },
   methods: {
-    rehandleExpandChange(value, { expandedRowData }) {
-      this.expandedRowKeys = value;
-      console.log('rehandleExpandChange', value, expandedRowData);
+    openAddDialog() {
+      this.dialogVisible = true;
+      this.formData = {
+        name: "",
+        type: "",
+        description: "",
+        money: 0,
+        time: 0,
+        timeType: "",
+        add: 0,
+        method: "",
+        rate: 0
+      };
     },
-    rehandleClickOp({ text, row }) {
+    editProduct({ text, row }) {
       console.log(text, row);
+    },
+    goWorkflow(row) {
+      sessionStorage.setItem("productInfo", JSON.stringify(row));
+      this.$router.push("/workflow/list");
+    },
+    goWorkflowEdit(row) {
+      let worksData = JSON.parse(localStorage.getItem("worksData"));
+      worksData.forEach(item => {
+        if (item.name === row.workflow) {
+          return sessionStorage.setItem("edit_workflow", JSON.stringify({
+            formData: {
+              name: item.name,
+              description: item.description,
+              productId: item.productId
+            },
+            inputJson: item.inputJson,
+            graphData: item.graphData,
+            editIndex: item.index
+          }));
+        }
+      });
+      this.$router.push("/workflow/edit");
+    },
+    deleteProduct(value) {
+      const dialog = this.$dialog.confirm({
+        header: "警告",
+        theme: "warning",
+        body: "确定要删除工作流: " + value.row.name + " 吗?",
+        onConfirm: () => {
+          console.log(value);
+          this.productsData.splice(value.rowIndex, 1);
+          localStorage.setItem("productsData", JSON.stringify(this.productsData));
+          dialog.hide();
+          this.$message.success("删除成功 !");
+        },
+        onClose: () => {
+          dialog.hide();
+        }
+      });
     },
     closeDialog() {
       this.dialogVisible = false;
@@ -183,21 +309,42 @@ export default {
         duration: 1500,
       });
     },
-    createFlow() {
-      this.dialogVisible = false;
+    addProduct() {
+      const loadingAttachInstance = this.$loading({
+        attach: '#dialog',
+        showOverlay: true,
+        text: "提交中...",
+        size: '30px',
+      });
       let date = new Date();
-      this.worksData.push({
+      this.productsData.push({
         name: this.formData.name,
+        type: this.formData.type,
         description: this.formData.description,
         status: 1,
-        index: this.worksData.length + 1,
-        createAt: date.toLocaleString(),
-        modeAt: date.toLocaleString()
-      })
-      this.$router.push("/workflow/edit");
+        creater: JSON.parse(localStorage.getItem("arrange_user")).uname,
+        money: this.formData.money,// 起存金额
+        time: this.formData.time, // 存期
+        timeType: this.formData.timeType, // 存期
+        rate: this.formData.rate, // 利率
+        add: this.formData.add, // 购买递增金额
+        method: this.formData.method, //结息方式
+        index: this.productsData.length + 1,
+        workflow: null,
+        createAt: date.toLocaleString()
+      });
+      localStorage.setItem("productsData", JSON.stringify(this.productsData));
+      setTimeout(() => {
+        loadingAttachInstance.hide();
+        this.dialogVisible = false;
+        this.$message.success("添加成功 !");
+      }, 200);
     }
+  },
+  mounted() {
+    this.productsData = JSON.parse(localStorage.getItem("productsData")) || [];
   }
-}
+};
 </script>
 
 <style scoped lang="less">
@@ -232,7 +379,7 @@ h3 {
     &::before {
       position: absolute;
       top: 50%;
-      left: 0px;
+      left: 0;
       transform: translateY(-50%);
       content: "";
       background-color: #00a870;
@@ -248,5 +395,32 @@ h3 {
       background-color: #c0c0c0;
     }
   }
+  .status.warning {
+    color: #E6A23C;
+    &::before {
+      background-color: #E6A23C;
+    }
+  }
+  .status.error {
+    color: #F56C6C;
+    &::before {
+      background-color: #F56C6C;
+    }
+  }
+}
+</style>
+<style lang="less">
+.t-input-number .t-button {
+  margin: 0 !important;
+}
+.data-details {
+  display: flex;
+  width: 100%;
+}
+.data-details .content {
+  padding-left: 5px;
+  display: inline-block;
+  margin: 0 20px 0 0;
+  flex: 1;
 }
 </style>

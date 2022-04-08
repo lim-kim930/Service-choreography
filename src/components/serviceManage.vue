@@ -1,38 +1,54 @@
 <template>
-  <div style="text-align: left">
+  <div style="text-align: left;padding: 10px">
     <h3>原子服务</h3>
-    <t-button theme="primary" @click="dialogVisible = true">
-      <add-icon slot="icon" name="AddIcon" />新增
+    <t-button theme="primary" @click="openAddDialog">
+      <cloud-upload-icon slot="icon" name="CloudUploadIcon" />导入
     </t-button>
     <t-table
+      empty="还没有导入过原子服务"
       rowKey="index"
-      :data="worksData"
+      :data="serviceData"
       :columns="columns"
       :hover="true"
-      :expanded-row-keys="expandedRowKeys"
       :expanded-row="expandedRow"
-      @expand-change="rehandleExpandChange"
-      :expandOnRowClick="expandOnRowClick"
+      :expandOnRowClick="false"
     >
-      <template #op-column>
-        <p>操作</p>
-      </template>
       <template #op="slotProps">
-        <a class="link" @click="rehandleClickOp(slotProps)">编辑</a>
+        <a class="link" @click="openEditDialog(slotProps)">编辑</a>
         <span style="display: inline-block; width: 10px"></span>
-        <a class="link delete" @click="rehandleClickOp(slotProps)">删除</a>
+        <a class="link delete" @click="deleteService(slotProps)">删除</a>
       </template>
     </t-table>
     <t-dialog
-      header="新增原子服务"
+      :header="editIndex?('编辑' + formData.name):'导入原子服务'"
       :visible="dialogVisible"
       :onClose="closeDialog"
-      :onConfirm="createFlow"
+      :onConfirm="addOrEditService"
     >
-      <div slot="body">
+      <div slot="body" id="dialog">
         <t-form :data="formData" ref="form" :colon="true">
-          <t-form-item requiredMark :required="true" label="服务名称" name="name">
-            <t-input clearable v-model="formData.name" placeholder="请输入"></t-input>
+          <t-form-item requiredMark label="服务名称" name="name">
+            <t-input clearable v-model="formData.name" placeholder="请输入" style="width: 200px"></t-input>
+          </t-form-item>
+          <t-form-item requiredMark label="选择文件" name="file" v-show="!editIndex">
+            <t-upload
+              v-model="formData.fileContent"
+              accept=".proto"
+              :autoUpload="true"
+              theme="file"
+              draggable
+              tips="只能上传.proto文件"
+              action="https://service-bv448zsw-1257786608.gz.apigw.tencentcs.com/api/upload-demo"
+            />
+          </t-form-item>
+          <t-form-item requiredMark label="服务类型" name="address">
+            <t-select v-model="formData.type" style="width: 200px" placeholder="请选择">
+                <t-option value="http" label="http" key="http"></t-option>
+                <t-option value="grpc" label="grpc" key="grpc"></t-option>
+              </t-select>
+          </t-form-item>
+          <t-form-item requiredMark label="服务地址" name="address">
+            <t-input clearable v-model="formData.address" placeholder="请输入" style="width: 340px"></t-input>
           </t-form-item>
           <t-form-item label="描述/备注" name="description">
             <t-textarea
@@ -40,6 +56,7 @@
               v-model="formData.description"
               placeholder="请输入"
               name="description"
+              style="width: 340px"
               :autosize="{minRows: 3, maxRows: 5}"
               :maxcharacter="200"
             />
@@ -49,46 +66,39 @@
     </t-dialog>
   </div>
 </template>
-
+<script src="./../../public/wasm_exec.js"></script>
 <script>
-import { AddIcon, ChevronRightIcon } from 'tdesign-icons-vue';
+import { ChevronRightIcon, CloudUploadIcon } from 'tdesign-icons-vue';
 export default {
   data() {
     return {
-      expandControl: 'true',
-      expandIcon: true,
-      expandOnRowClick: true,
       dialogVisible: false,
-      worksData: [{
-        index: 1,
-        name: "服务1",
-        description: "这是描述1这是描述1这是描述1这是描述1这是描述1",
-        createAt: "2022-01-01 09:00",
-        type: "type1",
-        status: 0,
-        input: "输入的内容输入的内容输入的内容输入的内容",
-        output: "输出的内容输出的内容输出的内容输出的内容"
-      }],
+      serviceData: [],
+      editIndex: null,
       formData: {
         name: "",
-        description: ""
+        description: "",
+        fileContent: null,
+        type: "",
+        address: ""
       },
       columns: [
         {
           align: 'center',
-          width: '100',
-          colKey: 'index',
-          title: '序号'
-        },
-        {
-          align: 'center',
           colKey: 'name',
-          title: '服务名称'
+          title: '服务名称',
+          width: 220
         },
         {
           align: 'center',
           colKey: 'type',
-          title: '服务类型'
+          title: '服务类型',
+          width: 220
+        },
+        {
+          align: 'center',
+          colKey: 'address',
+          title: '服务地址'
         },
         {
           align: 'center',
@@ -104,23 +114,17 @@ export default {
         {
           align: 'center',
           colKey: 'op',
-          title: 'op-column',
+          title: '操作',
           cell: 'op'
         }
       ],
-      expandedRowKeys: ['2'],
       // defaultExpandedRowKeys: ['2', 4],
       expandedRow: (h, { row }) => (
         <div class="more-detail">
           <p class="title">
-            <b>输入:</b>
+            <b>接口定义:</b>
           </p>
-          <p class="content">{row.input}</p>
-          <br />
-          <p class="title">
-            <b>输出:</b>
-          </p>
-          <p class="content">{row.output}</p>
+          <p style="white-space: pre-line">{row.apis.join("\n")}</p>
         </div>
       ),
       globalLocale: {
@@ -128,31 +132,132 @@ export default {
           expandIcon: (h) => h && <ChevronRightIcon />,
         },
       },
-    }
+    };
   },
-  components: { AddIcon },
+  props: ["wh"],
+  components: { CloudUploadIcon },
   methods: {
-    rehandleClickOp({ text, row }) {
-      console.log(text, row);
+    openEditDialog(value) {
+      this.editIndex = value.rowIndex + 1;
+      this.formData = {
+        name: value.row.name,
+        description: value.row.description,
+        type: value.row.type,
+        address: value.row.address
+      };
+      this.dialogVisible = true;
     },
-    rehandleExpandChange(value, { expandedRowData }) {
-      this.expandedRowKeys = value;
-      console.log('rehandleExpandChange', value, expandedRowData);
+    deleteService(value) {
+      const dialog = this.$dialog.confirm({
+        header: "警告",
+        theme: "warning",
+        body: "确定要删除原子服务: " + value.row.name + " 吗?",
+        onConfirm: () => {
+          this.serviceData.splice(value.rowIndex, 1);
+          localStorage.setItem("serviceData", JSON.stringify(this.serviceData));
+          dialog.hide();
+          this.$message.success("删除成功 !");
+        },
+        onClose: () => {
+          dialog.hide();
+        }
+      });
+    },
+    // uploadLoading(file){
+    //   return new Promise((resolve) => {
+    //     file.percent = 0;
+    //     setTimeout
+    //     const timer = setTimeout(() => {
+    //       resolve({ status: 'success', response: { url: 'https://tdesign.gtimg.com/site/avatar.jpg' } });
+    //       file.percent = 100;
+    //       clearTimeout(timer);
+    //     }, 500);
+    //   });
+    // },
+    openAddDialog() {
+      this.dialogVisible = true;
+      this.formData = {
+        name: "",
+        description: "",
+        fileContent: null
+      };
+    },
+    addOrEditService() {
+      if (this.editIndex) {
+        if (!this.formData.name)
+          return this.$message.error("请完成必填项 !");
+        this.serviceData[this.editIndex - 1].name = this.formData.name;
+        this.serviceData[this.editIndex - 1].description = this.formData.description;
+        this.serviceData[this.editIndex - 1].address = this.formData.address;
+        this.serviceData[this.editIndex - 1].type = this.formData.type;
+        localStorage.setItem("serviceData", JSON.stringify(this.serviceData));
+        this.dialogVisible = false;
+        this.$message.success("修改原子服务信息成功 !");
+        return this.editIndex = null;
+      }
+      if (!this.formData.name || !this.formData.fileContent)
+        return this.$message.error("请完成必填项 !");
+      const loadingAttachInstance = this.$loading({
+        attach: '#dialog',
+        showOverlay: true,
+        text: "提交中...",
+        size: '30px',
+      });
+      let reader = new FileReader();
+      reader.readAsText(this.formData.fileContent[0].raw);
+      reader.onload = () => {
+        try{
+          // CoreWASM.AddResourceFromProto(this.formData.name, this.formData.address, this.formData.fileContent[0].name, reader.result);
+          const name = this.formData.fileContent[0].name.split(".")[0].split("_");
+          const index = name[0].substr(0, 1).toUpperCase() + name[0].slice(1) + name[1].substr(0, 1).toUpperCase() + name[1].slice(1);
+          const rpcs = reader.result.split("service " + index)[1].split("message")[0].split("{}").join().split("{")[1].split("}")[0];
+          let apis = rpcs.split("\r\n  rpc ");
+          let temp = [];
+          apis.forEach(item => {
+            if (item)
+              temp.push(item.split(" return")[0]);
+          });
+          apis = [];
+          temp.forEach(item => {
+            apis.push(index + "/" + item.split("(")[0]);
+          });
+          setTimeout(() => {
+            loadingAttachInstance.hide();
+            this.$message.success("导入原子服务成功 !");
+            this.serviceData.push({
+            index: this.serviceData.length + 1,
+            name: this.formData.name,
+            fileName: this.formData.fileContent[0].name,
+            address: this.formData.address,
+            description: this.formData.description || name[0] + "_" + name[1],
+            createAt: new Date().toLocaleString(),
+            type: this.formData.type,
+            apis,
+            content: reader.result
+          });
+          localStorage.setItem("serviceData", JSON.stringify(this.serviceData));
+            this.dialogVisible = false;
+          }, 200);
+        } catch(ex){
+          this.$message.error("导入原子服务失败: " + ex);
+          loadingAttachInstance.hide();
+        }
+      };
     },
     closeDialog() {
       this.dialogVisible = false;
       this.$message.info({
-        content: '操作已取消',
+        content: this.editIndex ? '编辑已取消' : '导入已取消',
         closeBtn: true,
         duration: 1500,
       });
-    },
-    createFlow() {
-      this.dialogVisible = false;
-      console.log(6666);
+      this.editIndex = null;
     }
+  },
+  mounted() {
+    this.serviceData = JSON.parse(localStorage.getItem("serviceData")) || [];
   }
-}
+};
 </script>
 
 <style scoped lang="less">
@@ -174,6 +279,9 @@ h3 {
   .link {
     color: #006eff;
     cursor: pointer;
+  }
+  .link.delete {
+    color: #e34d59;
   }
   .status {
     position: relative;
@@ -199,5 +307,10 @@ h3 {
       background-color: #e34d59;
     }
   }
+}
+</style>
+<style lang="less">
+.t-dialog__modal-default {
+  width: 600px;
 }
 </style>

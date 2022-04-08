@@ -1,0 +1,20 @@
+
+syntax = "proto3";
+
+package order_grpc;
+option go_package = "order_service/grpc/def";
+
+service OrderService{
+  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse){}
+}
+
+message CreateOrderRequest{
+  string UserID=1;
+  string ProductID=2;
+  int64 Delta=3;
+}
+
+message CreateOrderResponse{
+  string OrderID=1;
+}
+

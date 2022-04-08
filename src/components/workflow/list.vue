@@ -1,7 +1,7 @@
 <template>
   <div style="text-align: left">
     <h3>工作流</h3>
-    <t-button theme="primary" @click="dialogVisible = true">
+    <t-button theme="primary" @click="openAddDialog">
       <add-icon slot="icon" name="AddIcon" />新建
     </t-button>
     <t-table
@@ -13,29 +13,36 @@
       :maxHeight="wh - 320"
       :hover="true"
     >
-      <template #status="{ row }">
+      <!-- <template #status="{ row }">
         <p v-if="row.status === 0" class="status">正在使用</p>
         <p v-if="row.status === 1" class="status unhealth">未使用</p>
-      </template>
-      <template #op-column>
-        <p>操作</p>
-      </template>
+      </template>-->
       <template #op="slotProps">
-        <a class="link" @click="rehandleClickOp(slotProps)">编辑</a>
+        <a class="link" @click="openEditDialog(slotProps)">编辑</a>
         <span style="display: inline-block; width: 10px"></span>
-        <a class="link delete" @click="rehandleClickOp(slotProps)">删除</a>
+        <a class="link delete" @click="deleteFlow(slotProps)">删除</a>
       </template>
     </t-table>
     <t-dialog
-      header="新建工作流"
+      :header="editIndex?'编辑工作流':'新建工作流'"
       :visible="dialogVisible"
       :onClose="closeDialog"
-      :onConfirm="createFlow"
+      :onConfirm="createOrEditFlow"
     >
       <div slot="body">
         <t-form :data="formData" ref="form" :colon="true">
           <t-form-item requiredMark :required="true" label="工作流名称" name="name">
             <t-input clearable v-model="formData.name" placeholder="请输入"></t-input>
+          </t-form-item>
+          <t-form-item v-if="!editIndex" requiredMark :required="true" label="选择产品" name="name">
+            <t-select v-model="formData.productId">
+              <t-option
+                v-for="item in productsData"
+                :value="item.index"
+                :label="item.name"
+                :key="item.index"
+              ></t-option>
+            </t-select>
           </t-form-item>
           <t-form-item label="描述/备注" name="description">
             <t-textarea
@@ -59,49 +66,32 @@ export default {
   data() {
     return {
       dialogVisible: false,
-      worksData: [{
-        index: 1,
-        name: "工作流1",
-        description: "这是描述1这是描述1这是描述1这是描述1这是描述1",
-        createAt: "2022-01-01 09:00",
-        modeAt: "2022-01-01 21:00",
-        status: 0,
-      }, {
-        index: 2,
-        name: "工作流2",
-        description: "这是描述2这是描述2这是描述2这是描述2这是描述2",
-        createAt: "2022-01-01 09:00",
-        modeAt: "2022-01-01 21:00",
-        status: 1,
-      }],
+      editIndex: null,
+      worksData: [],
+      productsData: [],
       formData: {
         name: "",
-        description: ""
+        description: "",
+        productId: ""
       },
       columns: [
-        {
-          align: 'center',
-          width: '100',
-          colKey: 'index',
-          title: '序号'
-        },
         {
           align: 'center',
           colKey: 'name',
           title: '工作流名称'
         },
+        // {
+        //   align: 'center',
+        //   colKey: 'status',
+        //   width: 120,
+        //   title: '状态',
+        //   cell: 'status'
+        // },
         {
           align: 'center',
-          colKey: 'status',
-          width: 120,
-          title: '状态',
-          cell: 'status'
-        },
-        {
-          align: 'center',
-          colKey: 'description',
-          title: '描述/备注',
-          ellipsis: true
+          colKey: 'product',
+          title: '所属产品',
+          cell: 'product'
         },
         {
           align: 'center',
@@ -115,8 +105,14 @@ export default {
         },
         {
           align: 'center',
+          colKey: 'description',
+          title: '描述/备注',
+          ellipsis: true
+        },
+        {
+          align: 'center',
           colKey: 'op',
-          title: 'op-column',
+          title: '操作',
           cell: 'op'
         }
       ],
@@ -125,8 +121,78 @@ export default {
   props: ["wh"],
   components: { AddIcon },
   methods: {
-    rehandleClickOp({ text, row }) {
-      console.log(text, row);
+    openAddDialog() {
+      this.formData = {
+        name: "",
+        description: "",
+        productId: ""
+      };
+      this.dialogVisible = true;
+    },
+    openEditDialog(value) {
+      this.editIndex = value.row.index;
+      this.formData = {
+        name: value.row.name,
+        description: value.row.description,
+        productId: value.row.productId
+      };
+      this.dialogVisible = true;
+    },
+    deleteFlow(value) {
+      const dialog = this.$dialog.confirm({
+        header: "警告",
+        theme: "warning",
+        body: "确定要删除工作流: " + value.row.name + " 吗?",
+        onConfirm: () => {
+          console.log(value);
+          this.worksData.splice(value.rowIndex, 1);
+          localStorage.setItem("worksData", JSON.stringify(this.worksData));
+          let productsData = JSON.parse(localStorage.getItem("productsData"));
+          productsData.forEach(item => {
+            if (item.index === value.row.productId) {
+              item.workflow = null;
+              item.workflowId = null;
+            }
+          });
+          localStorage.setItem("productsData", JSON.stringify(productsData));
+          dialog.hide();
+          this.$message.success("删除成功 !");
+        },
+        onClose: () => {
+          dialog.hide();
+        }
+      });
+    },
+    createOrEditFlow() {
+      if (!this.formData.name)
+        return this.$message.error("请完成必填项 !");
+      sessionStorage.removeItem("new_workflow");
+      sessionStorage.removeItem("edit_workflow");
+      // let date = new Date();
+      // this.worksData.push({
+      //   name: this.formData.name,
+      //   description: this.formData.description,
+      //   status: 1,
+      //   index: this.worksData.length + 1,
+      //   createAt: date.toLocaleString(),
+      //   modeAt: date.toLocaleString()
+      // });
+      if (this.editIndex) {
+        // this.worksData[this.editIndex - 1].name = this.formData.name;
+        // this.worksData[this.editIndex - 1].description = this.formData.description;
+        // this.worksData[this.editIndex - 1].modeAt = new Date().toLocaleString;
+        sessionStorage.setItem("edit_workflow", JSON.stringify({
+          formData: this.formData,
+          inputJson: this.worksData[this.editIndex - 1].inputJson,
+          graphData: this.worksData[this.editIndex - 1].graphData,
+          editIndex: this.editIndex
+        }));
+      }
+      else {
+        sessionStorage.setItem("new_workflow", JSON.stringify(this.formData));
+      }
+      this.dialogVisible = false;
+      this.$router.push("/workflow/edit");
     },
     closeDialog() {
       this.dialogVisible = false;
@@ -135,19 +201,27 @@ export default {
         closeBtn: true,
         duration: 1500,
       });
-    },
-    createFlow() {
-      this.dialogVisible = false;
-      let date = new Date();
-      this.worksData.push({
-        name: this.formData.name,
-        description: this.formData.description,
-        status: 1,
-        index: this.worksData.length + 1,
-        createAt: date.toLocaleString(),
-        modeAt: date.toLocaleString()
+    }
+  },
+  mounted() {
+    this.worksData = JSON.parse(localStorage.getItem("worksData")) || [];
+    this.productsData = JSON.parse(localStorage.getItem("productsData"));
+    this.worksData.forEach(item => {
+      this.productsData.forEach(product => {
+        if (item.productId === product.index) {
+          item.product = product.name;
+        }
       });
-      this.$router.push("/workflow/edit");
+    });
+    if (sessionStorage.getItem("productInfo")) {
+      this.formData = {
+        name: "",
+        description: "",
+        product: JSON.parse(sessionStorage.getItem("productInfo")).name,
+        productId: JSON.parse(sessionStorage.getItem("productInfo")).index
+      };
+      this.dialogVisible = true;
+      sessionStorage.removeItem("productInfo");
     }
   }
 };

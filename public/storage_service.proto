@@ -1,0 +1,40 @@
+
+syntax = "proto3";
+
+package storage_grpc;
+option go_package = "storage_service/grpc/def";
+
+service StorageService{
+  rpc LockStorage(LockStorageRequest) returns (LockStorageResponse){}
+  rpc ReleaseStorage(ReleaseStorageRequest) returns (ReleaseStorageResponse){}
+  rpc CommitStorage(CommitStorageRequest) returns (CommitStorageResponse){}
+}
+
+message LockStorageRequest{
+  string ProductID=1;
+  string AccountID=2;
+  int32 Delta=3;
+}
+
+message LockStorageResponse{
+  string TransactionID=1;
+}
+
+message ReleaseStorageRequest{
+  string TransactionID=1;
+}
+
+message ReleaseStorageResponse{
+
+}
+
+message CommitStorageRequest{
+  string TransactionID=1;
+}
+
+message CommitStorageResponse{
+
+}
+
+
+

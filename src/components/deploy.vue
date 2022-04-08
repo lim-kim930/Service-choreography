@@ -1,48 +1,52 @@
 <template>
-  <div style="text-align: left">
-    <h3>原子服务</h3>
-    <t-button theme="primary" @click="dialogVisible = true">
-      <add-icon slot="icon" name="AddIcon" />新增
-    </t-button>
+  <div style="text-align: left;padding: 10px">
+    <h3>部署管理</h3>
     <t-table
       rowKey="index"
-      :data="worksData"
+      :data="productsData"
       :columns="columns"
       :hover="true"
-      :expanded-row-keys="expandedRowKeys"
       :expanded-row="expandedRow"
-      @expand-change="rehandleExpandChange"
-      :expandOnRowClick="expandOnRowClick"
     >
-      <template #op-column>
-        <p>操作</p>
+      <template #name="{row}">
+        <p
+          :style="{width: row.name.length*15 + 30 + 'px', 'margin-left': (229-(row.name.length*15))/2 + 'px','margin-top': 0,'margin-bottom': 0}"
+        >
+          {{row.name}}
+          <span style="color: #ccc;cursor: pointer;" @click="goProduct()">查看</span>
+        </p>
       </template>
-      <template #op="slotProps">
-        <a class="link" @click="rehandleClickOp(slotProps)">编辑</a>
+      <template #status="{ row }">
+        <p v-if="row.status === 0" class="status">已发布</p>
+        <p v-if="row.status === 1" class="status unhealth">未发布</p>
+        <p v-if="row.status === 2" class="status warning">投票中</p>
+        <p v-if="row.status === 3" class="status error">未通过</p>
+      </template>
+      <template #op="{row}">
+        <a v-if="row.status === 2 && row.creater !== user" class="link" @click="vote(row)">投票</a>
         <span style="display: inline-block; width: 10px"></span>
-        <a class="link delete" @click="rehandleClickOp(slotProps)">删除</a>
+        <a v-if="row.status === 0" class="link delete" @click="version(row)">管理</a>
       </template>
     </t-table>
     <t-dialog
-      header="新增原子服务"
+      :header="'发布投票 - ' + this.formData.name"
       :visible="dialogVisible"
       :onClose="closeDialog"
-      :onConfirm="createFlow"
+      :onConfirm="voteConfirm"
     >
       <div slot="body">
         <t-form :data="formData" ref="form" :colon="true">
-          <t-form-item requiredMark :required="true" label="服务名称" name="name">
-            <t-input clearable v-model="formData.name" placeholder="请输入"></t-input>
+          <t-form-item label="产品名称" name="name">
+            <t-input disabled v-model="formData.name" placeholder="请输入"></t-input>
           </t-form-item>
-          <t-form-item label="描述/备注" name="description">
-            <t-textarea
-              clearable
-              v-model="formData.description"
-              placeholder="请输入"
-              name="description"
-              :autosize="{minRows: 3, maxRows: 5}"
-              :maxcharacter="200"
-            />
+          <t-form-item label="创建用户" name="name">
+            <t-input disabled v-model="formData.creater" placeholder="请输入"></t-input>
+          </t-form-item>
+          <t-form-item label="投票" name="description">
+            <t-radio-group v-model="formData.vote">
+              <t-radio value="ok">赞成</t-radio>
+              <t-radio value="no">反对</t-radio>
+            </t-radio-group>
           </t-form-item>
         </t-form>
       </div>
@@ -51,50 +55,38 @@
 </template>
 
 <script>
-import { AddIcon, ChevronRightIcon } from 'tdesign-icons-vue';
+import { ChevronRightIcon } from 'tdesign-icons-vue';
 export default {
   data() {
     return {
       expandControl: 'true',
       expandIcon: true,
-      expandOnRowClick: true,
       dialogVisible: false,
-      worksData: [{
-        index: 1,
-        name: "服务1",
-        description: "这是描述1这是描述1这是描述1这是描述1这是描述1",
-        createAt: "2022-01-01 09:00",
-        type: "type1",
-        status: 0,
-        input: "输入的内容输入的内容输入的内容输入的内容",
-        output: "输出的内容输出的内容输出的内容输出的内容"
-      }],
+      productsData: [],
       formData: {
         name: "",
-        description: ""
+        creater: "",
+        user: "",
+        vote: "ok"
       },
       columns: [
         {
           align: 'center',
-          width: '100',
-          colKey: 'index',
-          title: '序号'
-        },
-        {
-          align: 'center',
           colKey: 'name',
-          title: '服务名称'
+          title: '产品名称',
+          cell: 'name'
         },
         {
           align: 'center',
-          colKey: 'type',
-          title: '服务类型'
+          colKey: 'status',
+          title: '部署状态',
+          cell: 'status',
+          width: 110
         },
         {
           align: 'center',
-          colKey: 'description',
-          title: '描述/备注',
-          ellipsis: true
+          colKey: 'creater',
+          title: '创建用户'
         },
         {
           align: 'center',
@@ -104,23 +96,17 @@ export default {
         {
           align: 'center',
           colKey: 'op',
-          title: 'op-column',
+          title: '操作',
           cell: 'op'
         }
       ],
-      expandedRowKeys: ['2'],
-      // defaultExpandedRowKeys: ['2', 4],
       expandedRow: (h, { row }) => (
         <div class="more-detail">
           <p class="title">
-            <b>输入:</b>
+            <b>服务地址:</b>
           </p>
-          <p class="content">{row.input}</p>
+          <p class="content">{row.url || "未发布"}</p>
           <br />
-          <p class="title">
-            <b>输出:</b>
-          </p>
-          <p class="content">{row.output}</p>
         </div>
       ),
       globalLocale: {
@@ -128,16 +114,19 @@ export default {
           expandIcon: (h) => h && <ChevronRightIcon />,
         },
       },
-    }
+    };
   },
-  components: { AddIcon },
   methods: {
+    goProduct() {
+      this.$router.push("/productMange");
+    },
     rehandleClickOp({ text, row }) {
       console.log(text, row);
     },
-    rehandleExpandChange(value, { expandedRowData }) {
-      this.expandedRowKeys = value;
-      console.log('rehandleExpandChange', value, expandedRowData);
+    vote(row) {
+      this.formData.name = row.name;
+      this.formData.creater = row.creater;
+      this.dialogVisible = true;
     },
     closeDialog() {
       this.dialogVisible = false;
@@ -147,12 +136,72 @@ export default {
         duration: 1500,
       });
     },
-    createFlow() {
-      this.dialogVisible = false;
-      console.log(6666);
+    voteConfirm() {
+      const loadingAttachInstance = this.$loading({
+        fullscreen: true,
+        showOverlay: true,
+        text: "加载中...",
+        size: '30px',
+      });
+      setTimeout(() => {
+        loadingAttachInstance.hide();
+        this.dialogVisible = false;
+        this.$message.success("投票成功! ");
+        if (this.formData.vote === "ok") {
+          const loadingAttachInstance2 = this.$loading({
+            fullscreen: true,
+            showOverlay: true,
+            text: "部署中...",
+            size: '30px',
+          });
+          this.productsData.forEach(item => {
+            if (item.name === this.formData.name) {
+              item.location = item.workflow.split("-")[1];
+              item.url = "https://limkim.xyz/financing/product" + item.index;
+              item.status = 0;
+            }
+          });
+          setTimeout(() => {
+            let products1Data = [];
+            let products2Data = [];
+            this.productsData.forEach(item => {
+              if (item.status === 0 && item.type === "定期存款")
+                products1Data.push(item);
+              else if (item.status === 0 && item.type === "通知存款")
+                products2Data.push(item);
+            });
+            this.axios({
+              method: "post",
+              url: "https://api.limkim.xyz/editProduct",
+              data: {
+                products1Data,
+                products2Data
+              }
+            }).then(() => {
+              loadingAttachInstance2.hide();
+              this.$message.success("部署成功! ");
+              localStorage.setItem("productsData", JSON.stringify(this.productsData));
+            }).catch(() => {
+              this.$message.error("部署失败! ");
+            });
+          }, 500);
+        }
+        else {
+          this.productsData.forEach(item => {
+            if (item.name === this.formData.name) {
+              item.status = 3;
+            }
+          });
+          localStorage.setItem("productsData", JSON.stringify(this.productsData));
+        }
+      }, 500);
     }
+  },
+  mounted() {
+    this.productsData = JSON.parse(localStorage.getItem("productsData")) || [];
+    this.user = JSON.parse(localStorage.getItem("arrange_user")).uname;
   }
-}
+};
 </script>
 
 <style scoped lang="less">
@@ -197,6 +246,18 @@ h3 {
     color: #e34d59;
     &::before {
       background-color: #e34d59;
+    }
+  }
+  .status.warning {
+    color: #e6a23c;
+    &::before {
+      background-color: #e6a23c;
+    }
+  }
+  .status.error {
+    color: #f56c6c;
+    &::before {
+      background-color: #f56c6c;
     }
   }
 }

@@ -5,6 +5,7 @@ import edit from "./components/workflow/edit.vue";
 import list from "./components/workflow/list.vue";
 import serviceManage from "./components/serviceManage.vue";
 import deploy from "./components/deploy.vue";
+import traceSource from "./components/traceSource.vue";
 import usersManage from "./components/usersManage.vue";
 
 const router = new VueRouter({
@@ -24,6 +25,7 @@ const router = new VueRouter({
         },
         { path: "/serviceManage", component: serviceManage },
         { path: "/deploy", component: deploy },
+        { path: "/traceSource", component: traceSource },
         { path: "/usersManage", component: usersManage }
     ]
 });

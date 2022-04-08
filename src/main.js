@@ -10,6 +10,10 @@ Vue.use(VueRouter);
 Vue.use(TDesign);
 Vue.config.productionTip = false;
 
+import axios from "axios";
+// axios.defaults.withCredentials = true
+Vue.prototype.axios = axios;
+
 const originalPush = VueRouter.prototype.push;
 VueRouter.prototype.push = function push(location) {
   return originalPush.call(this, location).catch(err => err);
