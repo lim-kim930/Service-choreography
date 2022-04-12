@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Building...
+    - name: Setup Node...
       uses: actions/setup-node@v3
       with:
         node-version: '16.14.2'
@@ -30,4 +30,4 @@ jobs:
         SOURCE: "dist/ " # 将要复制到云服务器的静态文件夹
         REMOTE_HOST: "47.110.162.113" # 云服务器公网地址
         REMOTE_USER: "root" # 服务器用户名
-        TARGET: "/www/wwwroot/asw.limkim.xyz" # 打包后的文件夹将放在目录
+        TARGET: "/www/wwwroot/asw.limkim.cn" # 打包后的文件夹将放在目录
