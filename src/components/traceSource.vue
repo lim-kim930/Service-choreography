@@ -1,25 +1,13 @@
 <template>
-  <div style="text-align: left">
+  <div style="text-align: left;padding: 10px">
     <h3>业务溯源</h3>
-    <t-table rowKey="index" :data="worksData" :columns="columns" :hover="true">
-      <template #op-column>
-        <p>操作</p>
-      </template>
-      <template #op="slotProps">
-        <a class="link" @click="rehandleClickOp(slotProps)">重置</a>
-        <span style="display: inline-block; width: 10px"></span>
-        <a class="link delete" @click="rehandleClickOp(slotProps)">删除</a>
-      </template>
-    </t-table>
-    <t-dialog header="新增用户" :visible="dialogVisible" :onClose="closeDialog" :onConfirm="createFlow">
-      <div slot="body">
-        <t-form :data="formData" ref="form" :colon="true">
-          <t-form-item requiredMark :required="true" label="账号" name="name">
-            <t-input clearable v-model="formData.name" placeholder="请输入"></t-input>
-          </t-form-item>
-        </t-form>
-      </div>
-    </t-dialog>
+    <t-table
+      rowKey="index"
+      :data="traceData"
+      :columns="columns"
+      :hover="true"
+      :expanded-row="expandedRow"
+    ></t-table>
   </div>
 </template>
 
@@ -31,43 +19,119 @@ export default {
       expandIcon: true,
       expandOnRowClick: true,
       dialogVisible: false,
-      worksData: [],
-      formData: {
-        name: "",
-        description: ""
+      traceData: [{
+        index: 1,
+        product: "3个月存款产品",
+        workflow: "未绑定",
+        type: "新建产品",
+        content: "新建产品",
+        user: "manager1",
+        time: "2022/4/9 17:42:38"
       },
+      {
+        index: 2,
+        product: "3个月存款产品",
+        workflow: "定期存款-杭州",
+        type: "绑定/新建工作流",
+        content: "commit: 新建工作流",
+        user: "manager1",
+        time: "2022/4/9 17:50:21"
+      },
+      {
+        index: 3,
+        product: "3个月存款产品",
+        workflow: "定期存款-杭州",
+        type: "修改工作流",
+        content: "commit: 一些修改",
+        user: "manager1",
+        time: "2022/4/9 20:01:43"
+      },
+      {
+        index: 4,
+        product: "3个月存款产品",
+        workflow: "定期存款-杭州",
+        type: "投票",
+        content: "发起投票",
+        user: "manager1",
+        time: "2022/4/9 17:50:22"
+      },
+      {
+        index: 5,
+        product: "3个月存款产品",
+        workflow: "定期存款-杭州",
+        type: "投票",
+        content: "赞成投票",
+        user: "manager2",
+        time: "2022/4/9 20:03:01"
+      },
+      {
+        index: 6,
+        product: "6个月存款产品",
+        workflow: "未绑定",
+        type: "新建产品",
+        content: "新建产品",
+        user: "manager2",
+        time: "2022/4/15 01:24:14"
+      }
+      ,
+      {
+        index: 7,
+        product: "6个月存款产品",
+        workflow: "定期存款-长沙",
+        type: "绑定/新建工作流",
+        content: "commit: 新建工作流",
+        user: "manager2",
+        time: "2022/4/15 01:34:38"
+      }
+      ,
+      {
+        index: 4,
+        product: "6个月存款产品",
+        workflow: "定期存款-长沙",
+        type: "投票",
+        content: "发起投票",
+        user: "manager1",
+        time: "2022/4/15 01:35:24"
+      },
+      {
+        index: 5,
+        product: "6个月存款产品",
+        workflow: "定期存款-长沙",
+        type: "投票",
+        content: "赞成投票",
+        user: "manager2",
+        time: "2022/4/15 01:35:49"
+      }],
       columns: [
         {
           align: 'center',
-          width: '100',
-          colKey: 'index',
-          title: '序号'
+          colKey: 'product',
+          title: '产品'
         },
         {
           align: 'center',
-          colKey: 'name',
-          title: '账号'
+          colKey: 'workflow',
+          title: '工作流'
         },
         {
           align: 'center',
           colKey: 'type',
-          title: '用户'
+          title: '操作类型',
         },
         {
           align: 'center',
-          colKey: 'pwd',
-          title: '密码',
+          colKey: 'content',
+          title: '操作内容',
         },
         {
           align: 'center',
-          colKey: 'createAt',
-          title: '创建时间'
+          colKey: 'user',
+          title: '操作人员'
         },
         {
           align: 'center',
-          colKey: 'op',
-          title: 'op-column',
-          cell: 'op'
+          colKey: 'time',
+          title: '操作时间'
         }
       ],
       expandedRowKeys: ['2'],
@@ -75,14 +139,25 @@ export default {
       expandedRow: (h, { row }) => (
         <div class="more-detail">
           <p class="title">
-            <b>输入:</b>
+            <b>交易哈希:</b>
           </p>
-          <p class="content">{row.input}</p>
-          <br />
+          <p class="content">0x8bedfe65eef2ce4602bd1c2f37c780ffc2d035f8195390f2c6dd6ff6ded9e9cd</p>
           <p class="title">
-            <b>输出:</b>
+            <b>交易号:</b>
           </p>
-          <p class="content">{row.output}</p>
+          <p class="content">0x3f96</p>
+          <p class="title">
+            <b>区块哈希:</b>
+          </p>
+          <p class="content">0xdd18b82976baa4f74507cd8a9d1ce9f4ec3d7a1d8f898b1c1454e8f209a7d782</p>
+          <p class="title">
+            <b>区块时间戳:</b>
+          </p>
+          <p class="content">1649497358211188570</p>
+          <p class="title">
+            <b>写入时间:</b>
+          </p>
+          <p class="content">1649497363247987581</p>
         </div>
       ),
       globalLocale: {

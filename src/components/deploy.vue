@@ -1,5 +1,5 @@
 <template>
-  <div style="text-align: left;padding: 10px">
+  <div style="text-align: left;padding: 10px" class="deploy">
     <h3>部署管理</h3>
     <t-table
       rowKey="index"
@@ -24,8 +24,9 @@
       </template>
       <template #op="{row}">
         <a v-if="row.status === 2 && row.creater !== user" class="link" @click="vote(row)">投票</a>
-        <span style="display: inline-block; width: 10px"></span>
-        <a v-if="row.status === 0" class="link delete" @click="version(row)">管理</a>
+        <a v-if="row.status === 0" class="link" @click="version(row)">版本管理</a>
+        <span v-if="row.status === 0" style="display: inline-block; width: 10px"></span>
+        <a v-if="row.status === 0" class="link delete" @click="deleteProduct(row)">下线</a>
       </template>
     </t-table>
     <t-dialog
@@ -51,6 +52,26 @@
         </t-form>
       </div>
     </t-dialog>
+    <t-dialog
+      class="version"
+      :header="'版本管理 ' +'- '+modifying.name"
+      :visible="dialogVisible2"
+      :cancelBtn="null"
+      :onClose="()=>{dialogVisible2 = false}"
+      :onConfirm="()=>{dialogVisible2 = false}"
+    >
+      <div slot="body">
+        <t-table rowKey="index" :data="modifying.versions" :columns="columns2" bordered>
+          <template #op="{row}">
+            <a
+              v-show="row.version !== modifying.version"
+              class="link"
+              @click="switchVersion(row)"
+            >切换</a>
+          </template>
+        </t-table>
+      </div>
+    </t-dialog>
   </div>
 </template>
 
@@ -59,10 +80,17 @@ import { ChevronRightIcon } from 'tdesign-icons-vue';
 export default {
   data() {
     return {
+      pagination: {
+        defaultCurrent: 2,
+        defaultPageSize: 5,
+        total: 28
+      },
       expandControl: 'true',
       expandIcon: true,
       dialogVisible: false,
+      dialogVisible2: false,
       productsData: [],
+      modifying: {},
       formData: {
         name: "",
         creater: "",
@@ -95,6 +123,40 @@ export default {
         },
         {
           align: 'center',
+          colKey: 'version',
+          title: '工作流版本'
+        },
+        {
+          align: 'center',
+          colKey: 'op',
+          title: '操作',
+          cell: 'op'
+        }
+      ],
+      columns2: [
+        {
+          align: 'center',
+          colKey: 'version',
+          title: '版本',
+          cell: 'name'
+        },
+        {
+          align: 'center',
+          colKey: 'date',
+          title: '创建时间',
+        },
+        {
+          align: 'center',
+          colKey: 'commit',
+          title: 'commit',
+        },
+        {
+          align: 'center',
+          colKey: 'workflow',
+          title: '工作流'
+        },
+        {
+          align: 'center',
           colKey: 'op',
           title: '操作',
           cell: 'op'
@@ -120,6 +182,9 @@ export default {
     goProduct() {
       this.$router.push("/productMange");
     },
+    deleteProduct(row) {
+      console.log(row);
+    },
     rehandleClickOp({ text, row }) {
       console.log(text, row);
     },
@@ -127,6 +192,28 @@ export default {
       this.formData.name = row.name;
       this.formData.creater = row.creater;
       this.dialogVisible = true;
+    },
+    switchVersion(row) {
+      const dialog = this.$dialog.confirm({
+        header: "警告",
+        theme: "warning",
+        body: "确定要更改版本吗?",
+        onConfirm: () => {
+          this.productsData.forEach(item => {
+            if (item.workflow === row.workflow) {
+              item.version = row.version;
+              localStorage.setItem("productsData", JSON.stringify(this.productsData));
+              return;
+            }
+          });
+          dialog.hide();
+          this.$message.success("更改成功 !");
+        },
+        onClose: () => {
+          dialog.hide();
+        }
+      });
+
     },
     closeDialog() {
       this.dialogVisible = false;
@@ -151,39 +238,42 @@ export default {
           const loadingAttachInstance2 = this.$loading({
             fullscreen: true,
             showOverlay: true,
-            text: "部署中...",
+            text: "交付部署中...",
             size: '30px',
           });
           this.productsData.forEach(item => {
             if (item.name === this.formData.name) {
-              item.location = item.workflow.split("-")[1];
+              // item.location = item.workflow.split("-")[1];
               item.url = "https://limkim.xyz/financing/product" + item.index;
               item.status = 0;
             }
           });
           setTimeout(() => {
-            let products1Data = [];
-            let products2Data = [];
-            this.productsData.forEach(item => {
-              if (item.status === 0 && item.type === "定期存款")
-                products1Data.push(item);
-              else if (item.status === 0 && item.type === "通知存款")
-                products2Data.push(item);
-            });
-            this.axios({
-              method: "post",
-              url: "https://api.limkim.xyz/editProduct",
-              data: {
-                products1Data,
-                products2Data
-              }
-            }).then(() => {
-              loadingAttachInstance2.hide();
-              this.$message.success("部署成功! ");
+            loadingAttachInstance2.hide();
+              this.$message.success("已交付部署 ");
               localStorage.setItem("productsData", JSON.stringify(this.productsData));
-            }).catch(() => {
-              this.$message.error("部署失败! ");
-            });
+            // let products1Data = [];
+            // let products2Data = [];
+            // this.productsData.forEach(item => {
+            //   if (item.status === 0 && item.type === "定期存款")
+            //     products1Data.push(item);
+            //   else if (item.status === 0 && item.type === "通知存款")
+            //     products2Data.push(item);
+            // });
+            // this.axios({
+            //   method: "post",
+            //   url: "https://api.limkim.xyz/editProduct",
+            //   data: {
+            //     products1Data,
+            //     products2Data
+            //   }
+            // }).then(() => {
+            //   loadingAttachInstance2.hide();
+            //   this.$message.success("已交付部署 ");
+            //   localStorage.setItem("productsData", JSON.stringify(this.productsData));
+            // }).catch(() => {
+            //   this.$message.error("部署失败! ");
+            // });
           }, 500);
         }
         else {
@@ -195,6 +285,29 @@ export default {
           localStorage.setItem("productsData", JSON.stringify(this.productsData));
         }
       }, 500);
+    },
+    version(row) {
+      this.dialogVisible2 = true;
+      this.modifying = row;
+      let date = "";
+      JSON.parse(localStorage.getItem("worksData")).forEach(item => {
+        if (item.productId === this.modifying.index)
+          date = item.createAt;
+      });
+      this.modifying.versions = [
+        {
+          version: "v1.0.0",
+          commit: "新建工作流",
+          date,
+          workflow: this.modifying.workflow
+        },
+        {
+          version: "v1.1.0",
+          commit: "一些修改",
+          date: "2022/4/9 20:01:43",
+          workflow: this.modifying.workflow
+        }
+      ];
     }
   },
   mounted() {
@@ -223,6 +336,9 @@ h3 {
   .link {
     color: #006eff;
     cursor: pointer;
+  }
+  .link.delete {
+    color: #e34d59;
   }
   .status {
     position: relative;
@@ -260,5 +376,10 @@ h3 {
       background-color: #f56c6c;
     }
   }
+}
+</style>
+<style lang="less">
+.deploy .version .t-dialog--default {
+  width: 70% !important;
 }
 </style>

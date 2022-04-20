@@ -25,15 +25,10 @@
         <!-- <a v-if="slotProps.row.status === 1" class="link" @click="editProduct(slotProps)">发布</a> -->
         <span style="display: inline-block; width: 10px"></span>
         <a
-          v-if="slotProps.row.status === 1"
+          v-if="slotProps.row.status !== 0"
           class="link delete"
           @click="deleteProduct(slotProps)"
         >删除</a>
-        <a
-          v-if="slotProps.row.status === 0"
-          class="link delete"
-          @click="deleteProduct(slotProps)"
-        >下线</a>
       </template>
       <template #workflow="{ row }">
         <p
@@ -55,80 +50,115 @@
         </p>
       </template>
     </t-table>
-    <t-dialog header="新建产品" :visible="dialogVisible" :onClose="closeDialog" :onConfirm="addProduct">
+    <t-dialog
+      header="新建产品"
+      :visible="dialogVisible"
+      :confirmBtn="step === 1?'下一步':'确定'"
+      cancelBtn="取消"
+      :onClose="closeDialog"
+      :onConfirm="addProduct"
+    >
       <div id="dialog" slot="body">
         <t-form :data="formData" ref="form" :colon="true">
-          <t-form-item requiredMark :required="true" label="产品名称" name="name">
-            <t-input clearable v-model="formData.name" placeholder="请输入" style="width: 300px"></t-input>
-          </t-form-item>
-          <t-form-item requiredMark :required="true" label="产品类型" name="name">
-            <t-select v-model="formData.type" style="width: 200px">
-              <t-option value="定期存款" label="定期存款" key="定期存款"></t-option>
-              <t-option value="通知存款" label="通知存款" key="通知存款"></t-option>
-            </t-select>
-          </t-form-item>
-          <t-form-item requiredMark :required="true" label="起存金额" name="name">
-            <t-input-number
-              v-model="formData.money"
-              placeholder="请输入"
-              theme="normal"
-              :max="1000000"
-              :min="1"
-            ></t-input-number>
-            <span style="margin-left: 5px">元</span>
-          </t-form-item>
-          <t-form-item requiredMark :required="true" label="产品存期" name="name">
-            <t-input-number
-              v-model="formData.time"
-              placeholder="请输入"
-              theme="normal"
-              :max="10000"
-              :min="1"
-            ></t-input-number>
-            <span style="margin-left: 5px">
-              <t-select v-model="formData.timeType">
-                <t-option value="天" label="天" key="day"></t-option>
-                <t-option value="月" label="月" key="month"></t-option>
-                <t-option value="年" label="年" key="year"></t-option>
+          <div v-show="step === 1">
+            <t-form-item requiredMark :required="true" label="产品名称" name="name">
+              <t-input clearable v-model="formData.name" placeholder="请输入" style="width: 300px"></t-input>
+            </t-form-item>
+            <t-form-item requiredMark :required="true" label="产品类型" name="name">
+              <t-select v-model="formData.type" style="width: 200px">
+                <t-option value="定期存款" label="定期存款" key="定期存款"></t-option>
+                <t-option value="通知存款" label="通知存款" key="通知存款"></t-option>
               </t-select>
-            </span>
-          </t-form-item>
-          <t-form-item requiredMark :required="true" label="购买递增金额" name="name">
-            <t-input-number
-              v-model="formData.add"
-              placeholder="请输入"
-              theme="normal"
-              :max="1000000"
-              :min="1"
-            ></t-input-number>
-          </t-form-item>
-          <t-form-item requiredMark :required="true" label="利率(%)" name="name">
-            <t-input-number
-              style="width: 200px"
-              v-model="formData.rate"
-              :max="15"
-              :min="0.01"
-              theme="normal"
-              :decimalPlaces="4"
-              :format="value => `${value}%`"
-            ></t-input-number>
-          </t-form-item>
-          <t-form-item requiredMark :required="true" label="结息方式" name="name">
+            </t-form-item>
+            <t-form-item requiredMark :required="true" label="起存金额" name="name">
+              <t-input-number
+                v-model="formData.money"
+                placeholder="请输入"
+                theme="normal"
+                :max="1000000"
+                :min="1"
+              ></t-input-number>
+              <span style="margin-left: 5px">元</span>
+            </t-form-item>
+            <t-form-item requiredMark :required="true" label="产品期限" name="name">
+              <t-input-number
+                v-model="formData.time"
+                placeholder="请输入"
+                theme="normal"
+                :max="10000"
+                :min="1"
+              ></t-input-number>
+              <span style="margin-left: 5px">
+                <t-select v-model="formData.timeType">
+                  <t-option value="天" label="天" key="day"></t-option>
+                  <t-option value="月" label="月" key="month"></t-option>
+                  <t-option value="年" label="年" key="year"></t-option>
+                </t-select>
+              </span>
+            </t-form-item>
+            <t-form-item requiredMark :required="true" label="购买递增金额" name="name">
+              <t-input-number
+                v-model="formData.add"
+                placeholder="请输入"
+                theme="normal"
+                :max="1000000"
+                :min="1"
+              ></t-input-number>
+            </t-form-item>
+            <t-form-item requiredMark :required="true" label="年利率(%)" name="name">
+              <t-input-number
+                style="width: 200px"
+                v-model="formData.rate"
+                :max="15"
+                :min="0.01"
+                theme="normal"
+                :decimalPlaces="4"
+                :format="value => `${value}%`"
+              ></t-input-number>
+            </t-form-item>
+            <!-- <t-form-item requiredMark :required="true" label="结息方式" name="name">
             <t-select v-model="formData.method">
               <t-option value="按季度" label="按季度" key="day"></t-option>
               <t-option value="按定期周期" label="按定期周期" key="month"></t-option>
             </t-select>
-          </t-form-item>
-          <t-form-item label="描述/介绍" name="description">
-            <t-textarea
-              clearable
-              v-model="formData.description"
-              placeholder="请输入"
-              name="description"
-              :autosize="{minRows: 3, maxRows: 5}"
-              :maxcharacter="200"
-            />
-          </t-form-item>
+            </t-form-item>-->
+            <t-form-item label="描述/介绍" name="description">
+              <t-textarea
+                clearable
+                v-model="formData.description"
+                placeholder="请输入"
+                name="description"
+                :autosize="{minRows: 3, maxRows: 5}"
+                :maxcharacter="200"
+              />
+            </t-form-item>
+          </div>
+          <div v-show="step === 2">
+            <t-form-item v-model="a" label="计息规则" name="1">
+              <t-textarea
+                clearable
+                placeholder="请输入"
+                name="a"
+                :autosize="{minRows: 3, maxRows: 5}"
+              />
+            </t-form-item>
+            <t-form-item v-model="b" label="存入规则" name="2">
+              <t-textarea
+                clearable
+                placeholder="请输入"
+                name="b"
+                :autosize="{minRows: 3, maxRows: 5}"
+              />
+            </t-form-item>
+            <t-form-item v-model="c" label="支取规则" name="3">
+              <t-textarea
+                clearable
+                placeholder="请输入"
+                name="c"
+                :autosize="{minRows: 3, maxRows: 5}"
+              />
+            </t-form-item>
+          </div>
         </t-form>
       </div>
     </t-dialog>
@@ -140,10 +170,14 @@ import { AddIcon } from 'tdesign-icons-vue';
 export default {
   data() {
     return {
+      next: false,
       expandControl: 'true',
       expandIcon: true,
       dialogVisible: false,
       productsData: [],
+      a:"",
+      b:"",
+      c:"",
       formData: {
         name: "",
         type: "",
@@ -155,6 +189,7 @@ export default {
         method: "",
         rate: 0
       },
+      step: 1,
       columns: [
         {
           align: 'center',
@@ -219,7 +254,7 @@ export default {
             <span class="title">
               <b>产品存期</b>
             </span>
-            <span class="content">{row.time + (row.timeType==="月"?"个月":row.timeType)}</span>
+            <span class="content">{row.time + (row.timeType === "月" ? "个月" : row.timeType)}</span>
             <span class="title">
               <b>起存金额:</b>
             </span>
@@ -246,6 +281,7 @@ export default {
   components: { AddIcon },
   methods: {
     openAddDialog() {
+      this.step = 1
       this.dialogVisible = true;
       this.formData = {
         name: "",
@@ -310,6 +346,8 @@ export default {
       });
     },
     addProduct() {
+      if (this.step === 1)
+        return this.step = 2;
       const loadingAttachInstance = this.$loading({
         attach: '#dialog',
         showOverlay: true,
@@ -396,15 +434,15 @@ h3 {
     }
   }
   .status.warning {
-    color: #E6A23C;
+    color: #e6a23c;
     &::before {
-      background-color: #E6A23C;
+      background-color: #e6a23c;
     }
   }
   .status.error {
-    color: #F56C6C;
+    color: #f56c6c;
     &::before {
-      background-color: #F56C6C;
+      background-color: #f56c6c;
     }
   }
 }

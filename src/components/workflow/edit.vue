@@ -71,14 +71,9 @@
           <span>接口</span>
           <t-select v-model="form.Resource" :options="resources[resourceIndex]" placeholder="请选择" />
         </div>
-        <!-- <div class="t-drawer-demo-div" v-show="form.Resource !== undefined">
-          <span>输入</span>
-          <t-select v-model="resourceIndex" :options="services" placeholder="请选择" />
-        </div>
-        <div class="t-drawer-demo-div" v-show="form.Resource !== undefined">
-          <span>输出</span>
-          <t-select v-model="form.Resource" :options="resources[resourceIndex]" placeholder="请选择" />
-        </div> -->
+        <t-button theme="primary" v-show="form.Resource || form.Type === 'Choice'" @click="details">
+          <MenuFoldIcon />详细配置
+        </t-button>
       </t-drawer>
       <vue-json-editor
         v-model="inputJson"
@@ -88,12 +83,91 @@
         lang="zh"
       />
     </div>
+    <t-dialog
+      :header="'节点详细配置 - ' + form.Name"
+      :visible="dialogVisible"
+      :onClose="closeDialog"
+      :onConfirm="confirmDetails"
+    >
+      <div id="dialog" slot="body">
+        <t-form :data="detailsData" :colon="true">
+          <t-form-item requiredMark :required="true" label="参数" name="params">
+            <t-cascader
+              style="width: 200px"
+              v-model="detailsData.params"
+              :options="form.Resource?apiOptions[form.Resource].params:(form.lastNode?form.lastNode:[])"
+              clearable
+              multiple
+              value-type="full"
+              size="medium"
+              placeholder="请选择"
+              class="t-demo-cascader"
+            ></t-cascader>
+          </t-form-item>
+          <t-form-item
+            requiredMark
+            v-for="(item, index) in form.Choices"
+            v-bind:key="item.Next"
+            :required="true"
+            :label="'条件' + (index + 1)"
+            name="condition"
+          >
+            <t-select v-model="condition[index].method" placeholder="请选择判断规则" style="width: 200px">
+              <t-option value="BooleanEquals" label="布尔值是否等于设定值" key="BooleanEquals"></t-option>
+              <t-option value="NumericEquals" label="数值是否等于设定值" key="NumericEquals"></t-option>
+              <t-option value="IsBoolean" label="是否为布尔值" key="IsBoolean"></t-option>
+              <t-option value="IsNumeric" label="是否为数值" key="IsNumeric"></t-option>
+              <t-option value="StringEquals" label="字符串是否等于设定值" key="StringEquals"></t-option>
+            </t-select>
+            <t-input
+              style="margin-left: 10px"
+              v-show="condition[index].method && condition[index].method !== 'IsBoolean' && condition[index].method !== 'IsNumeric'"
+              v-model="condition[index].value"
+              placeholder="请输入设定值"
+            />
+          </t-form-item>
+          <t-form-item
+            requiredMark
+            v-if="form.Default"
+            :required="true"
+            :label="'Default'"
+            name="condition"
+          >
+            <!-- <t-select v-model="defaultData.method" placeholder="请选择判断规则" style="width: 200px">
+              <t-option value="BooleanEquals" label="布尔值是否等于设定值" key="BooleanEquals"></t-option>
+              <t-option value="NumericEquals" label="数值是否等于设定值" key="NumericEquals"></t-option>
+              <t-option value="IsBoolean" label="是否为布尔值" key="IsBoolean"></t-option>
+              <t-option value="IsNumeric" label="是否为数值" key="IsNumeric"></t-option>
+              <t-option value="StringEquals" label="字符串是否等于设定值" key="StringEquals"></t-option>
+            </t-select> -->
+            <t-input
+              style="width: 200px"
+              disabled
+              placeholder="其他"
+            />
+          </t-form-item>
+          <t-form-item v-if="!form.Choices" requiredMark :required="true" label="输出" name="output">
+            <t-cascader
+              style="width: 200px"
+              v-model="detailsData.output"
+              :options="form.Resource?apiOptions[form.Resource].output:[]"
+              clearable
+              multiple
+              value-type="full"
+              size="medium"
+              placeholder="请选择"
+              class="t-demo-cascader"
+            ></t-cascader>
+          </t-form-item>
+        </t-form>
+      </div>
+    </t-dialog>
   </div>
 </template>
 
 <script src="./../../wasm_exec.js"></script>
 <script>
-import { Icon } from 'tdesign-icons-vue';
+import { Icon, MenuFoldIcon } from 'tdesign-icons-vue';
 // import { Menu } from '@logicflow/extension';
 import { Control } from '@logicflow/extension';
 import { DndPanel } from '@logicflow/extension';
@@ -124,6 +198,162 @@ export default {
         "StartAt": "",
         "States": {}
       },
+      detailsData: {
+        params: "",
+        output: ""
+      },
+      condition: [{
+        method: "",
+        value: ""
+      }],
+      defaultData: {
+        method: "",
+        value: ""
+      },
+      apiOptions: {
+        "grpc:AccountService.GetAccountInfo": {
+          params: [
+            {
+              label: '$',
+              value: '$',
+              children: [
+                {
+                  label: 'AccountID',
+                  value: 'AccountID',
+                }
+              ],
+            }
+          ],
+          output: [
+            {
+              label: '$',
+              value: '$',
+              children: [
+                {
+                  label: 'AccountInfo',
+                  value: 'AccountInfo',
+                  children: [
+                    {
+                      label: 'AccountID',
+                      value: 'AccountID'
+                    },
+                    {
+                      label: 'BelongToUserID',
+                      value: 'BelongToUserID'
+                    },
+                    {
+                      label: 'IdentityInfo',
+                      value: 'IdentityInfo'
+                    },
+                    {
+                      label: 'Location',
+                      value: 'Location'
+                    },
+                    {
+                      label: 'Labels',
+                      value: 'Labels'
+                    }
+                    ,
+                    {
+                      label: 'Balance',
+                      value: 'Balance'
+                    }
+                  ]
+                }
+              ],
+            }
+          ]
+        },
+        "grpc:StorageService.LockStorage": {
+          params: [
+            {
+              label: '$',
+              value: '$',
+              children: [
+                {
+                  label: 'ProductID',
+                  value: 'ProductID',
+                },
+                {
+                  label: 'AccountID',
+                  value: 'AccountID',
+                },
+                {
+                  label: 'Delta',
+                  value: 'Delta',
+                }
+              ],
+            }
+          ],
+          output: [
+            {
+              label: '$',
+              value: '$',
+              children: [
+                {
+                  label: 'TransactionID',
+                  value: 'TransactionID',
+                }
+              ],
+            }
+          ]
+        },
+        "grpc:OrderService.CreateOrder": {
+          params: [
+            {
+              label: '$',
+              value: '$',
+              children: [
+                {
+                  label: 'ProductID',
+                  value: 'ProductID',
+                },
+                {
+                  label: 'UserID',
+                  value: 'UserID',
+                },
+                {
+                  label: 'Delta',
+                  value: 'Delta',
+                }
+              ],
+            }
+          ],
+          output: [
+            {
+              label: '$',
+              value: '$',
+              children: [
+                {
+                  label: 'OrderID',
+                  value: 'OrderID',
+                }
+              ],
+            }
+          ]
+        },
+        "grpc:StorageService.ReleaseStorage": {
+          params: [
+            {
+              label: '$',
+              value: '$',
+              children: [
+                {
+                  label: 'TransactionID',
+                  value: 'TransactionID',
+                }
+              ],
+            }
+          ],
+          output: [
+            {
+              label: '$',
+              value: '$'
+            }
+          ]
+        }
+      },
+      dialogVisible: false,
       resourceIndex: null,
       serviceData: [],
       services: [],
@@ -139,13 +369,13 @@ export default {
       form: {
         "Comment": "",
         "Name": "",
-        "Resource": ""
+        "Resource": "",
       },
       x_avaliable: [],
       y_avaliable: []
     };
   },
-  components: { Icon, vueJsonEditor },
+  components: { Icon, vueJsonEditor, MenuFoldIcon },
   methods: {
     backToList() {
       const dialog = this.$dialog.confirm({
@@ -184,6 +414,68 @@ export default {
         }
       });
       return nodes;
+    },
+    details() {
+      this.dialogVisible = true;
+      this.detailsData = {};
+      this.condition = [{
+        method: "",
+        value: ""
+      }];
+      if (this.form.Name === "Choice节点1"){
+        console.log(65);
+        this.form.lastNode = [{
+          label: '$',
+          value: '$',
+          children: [
+            {
+              label: 'AccountInfo',
+              value: 'AccountInfo',
+              children: [
+                {
+                  label: 'Location',
+                  value: 'Location'
+                },
+              ],
+            }
+          ]
+        }]
+      }
+        
+      else
+        this.form.lastNode = [
+          {
+            label: '$',
+            value: '$',
+            children: [
+              {
+                label: 'OrderID',
+                value: 'OrderID',
+              }
+            ],
+          }
+        ]
+    },
+    closeDialog() {
+      this.dialogVisible = false;
+      this.$message.info({
+        content: '操作已取消',
+        closeBtn: true,
+        duration: 1500,
+      });
+    },
+    confirmDetails() {
+      console.log(this.detailsData);
+      console.log(this.form);
+      if(!this.form.Choices)
+        this.form.OutputPath = this.detailsData.output[0].join(".");
+      else{
+        this.form.Choices[0].Variable = this.detailsData.params[0].join(".");
+        this.form.Choices[0][this.condition[0].method] = this.condition[0].value;
+        this.form.lastNode = undefined;
+      }
+
+      this.dialogVisible = false;
     },
     codeTranslator(graphData) {
       this.inputJson.States = {};
@@ -315,6 +607,7 @@ export default {
       }
     },
     handleConfirm() {
+      this.form
       this.lf.setProperties(this.modifiedNodeID, this.form);
       this.visible = false;
       let data = this.lf.getGraphData();
@@ -412,12 +705,14 @@ export default {
           createAt: worksData[this.workflowInfo.editIndex - 1].createAt,
           modeAt: new Date().toLocaleString(),
           graphData: this.lf.getGraphData(),
-          inputJson: this.inputJson
+          inputJson: this.inputJson,
+          version: "v1.0.0"
         };
         productsData.forEach(item => {
           if (item.index === this.workflowInfo.formData.productId) {
             item.workflow = this.workflowInfo.formData.name;
             item.status = 2;
+            item.version = "v1.0.0"
           }
         });
       }
@@ -431,13 +726,15 @@ export default {
           createAt: new Date().toLocaleString(),
           modeAt: new Date().toLocaleString(),
           graphData: this.lf.getGraphData(),
-          inputJson: this.inputJson
+          inputJson: this.inputJson,
+          version: "v1.0.0"
         });
         productsData.forEach(item => {
           if (item.index === this.workflowInfo.productId) {
             item.workflow = this.workflowInfo.name;
             item.workflowId = worksData.length + 1;
             item.status = 2;
+            item.version = "v1.0.0"
           }
         });
       }
@@ -445,10 +742,10 @@ export default {
       localStorage.setItem("worksData", JSON.stringify(worksData));
       localStorage.setItem("counts", JSON.stringify({
         passCount: this.passCount,
-        taskCount:  this.taskCount,
-        choiceCount:  this.choiceCount,
-        conditionCount:  this.conditionCount,
-        sameCount:  this.sameCount
+        taskCount: this.taskCount,
+        choiceCount: this.choiceCount,
+        conditionCount: this.conditionCount,
+        sameCount: this.sameCount
       }));
       setTimeout(() => {
         loadingAttachInstance.hide();
@@ -467,7 +764,7 @@ export default {
       let data = this.lf.getGraphData();
       this.reRender(data.nodes, true);
     },
-    addInChoiceNode(args){
+    addInChoiceNode(args) {
       this.lf.graphModel.addNode({
         id: "node_" + args.data.y + 80,
         type: 'Waiting',
@@ -480,13 +777,13 @@ export default {
       });
       this.sameCount -= 1
       data.nodes.forEach((item, index) => {
-        if(item.y === args.data.y)
+        if (item.y === args.data.y)
           this.sameCount++
       });
       data.nodes.forEach((item, index) => {
-        if(item.y> args.data.y){
+        if (item.y > args.data.y) {
           console.log(item);
-          item.y = 40 + (index-this.sameCount) * 100;
+          item.y = 40 + (index - this.sameCount) * 100;
         }
       });
       let targetNodeId = ""
@@ -501,25 +798,25 @@ export default {
           return;
         }
       });
-      data.edges.forEach((element,index) => {
+      data.edges.forEach((element, index) => {
         if (element.sourceNodeId === args.data.id) {
           data.edges.push({
             type: 'bezier',
             sourceNodeId: args.data.id,
             targetNodeId: "node_" + args.data.y + 80
           });
-          data.edges.splice(index,1); 
+          data.edges.splice(index, 1);
           return;
         }
       });
-      data.edges.forEach((element,index) => {
+      data.edges.forEach((element, index) => {
         if (element.targetNodeId === targetNodeId && element.sourceNodeId !== ("node_" + args.data.y + 80)) {
           data.edges.push({
             type: 'bezier',
             sourceNodeId: element.sourceNodeId,
             targetNodeId: targetNodeId
           });
-          data.edges.splice(index,1); 
+          data.edges.splice(index, 1);
           return;
         }
       });
@@ -551,15 +848,15 @@ export default {
       }
       else {
         for (let i = 1; i <= halfLength; i++) {
-          x_set.push(args.data.x- (i * 170));
+          x_set.push(args.data.x - (i * 170));
         }
         for (let i = 1; i <= halfLength; i++) {
           x_set.push(args.data.x + (i * 170));
         }
       }
-      if(length === 2)
-        data.nodes.forEach(item=>{
-          if(item.y>args.data.y && item.type!== "Circle"){
+      if (length === 2)
+        data.nodes.forEach(item => {
+          if (item.y > args.data.y && item.type !== "Circle") {
             this.lf.graphModel.updateAttributes(item.id, { x: x_set[0] });
           }
         })
@@ -593,7 +890,7 @@ export default {
           return;
         }
       });
-      
+
       t.push({
         id: "node_" + args.data.y + 100,
         // 以choice_default判断添加的节点条件
@@ -638,7 +935,7 @@ export default {
             type: 'bezier',
             sourceNodeId: element.sourceNodeId,
             targetNodeId: targetNodeId,
-            endPoint: {x: 390,y:740}
+            endPoint: { x: 390, y: 740 }
           });
           this.lf.graphModel.deleteEdgeById(element.id);
           return;
@@ -971,7 +1268,7 @@ export default {
             });
             return confirmDia.destroy();
           }
-          if(args.data.properties.inChoice){
+          if (args.data.properties.inChoice) {
             confirmDia.destroy();
             return this.addInChoiceNode(args);
           }

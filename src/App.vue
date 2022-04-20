@@ -17,7 +17,7 @@
           <a href="javascript:;">
             <icon class="t-menu__operations-icon" name="user" />
           </a>
-          <a href="javascript:;">
+          <a href="javascript:;" @click="logout">
             <icon class="t-menu__operations-icon" name="logout" />
           </a>
         </template>
@@ -86,6 +86,20 @@ export default {
     },
   },
   methods: {
+    logout() {
+      const dialog = this.$dialog.confirm({
+        header: "警告",
+        theme: "warning",
+        body: "确定要退出登录吗?",
+        onConfirm: () => {
+          dialog.hide();
+          window.location.href = "./sign";
+        },
+        onClose: () => {
+          dialog.hide();
+        }
+      });
+    },
     changeCollapsed() {
       this.collapsed = !this.collapsed;
       if (this.collapsed)

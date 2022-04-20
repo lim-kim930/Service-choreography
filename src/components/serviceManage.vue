@@ -313,4 +313,8 @@ h3 {
 .t-dialog__modal-default {
   width: 600px;
 }
+.explink {
+  color: #006eff;
+  cursor: pointer;
+}
 </style>
