@@ -13,7 +13,7 @@
     "axios": "^0.26.1",
     "core-js": "^3.6.5",
     "element-ui": "^2.15.6",
-    "protobufjs": "^6.11.2",
+    "protobufjs": "^6.11.3",
     "tdesign-vue": "^0.34.0",
     "vue": "^2.6.11",
     "vue-json-editor": "^1.4.3",
