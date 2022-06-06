@@ -87,18 +87,19 @@ export default {
           align: 'center',
           colKey: 'name',
           title: '服务名称',
-          width: 220
+          width: 190
         },
         {
           align: 'center',
           colKey: 'type',
           title: '服务类型',
-          width: 220
+          width: 170
         },
         {
           align: 'center',
           colKey: 'address',
-          title: '服务地址'
+          title: '服务地址',
+          width: 350
         },
         {
           align: 'center',
@@ -230,7 +231,7 @@ export default {
             fileName: this.formData.fileContent[0].name,
             address: this.formData.address,
             description: this.formData.description || name[0] + "_" + name[1],
-            createAt: new Date().toLocaleString(),
+            createAt: "2022/4/15 01:05:38",
             type: this.formData.type,
             apis,
             content: reader.result

@@ -7,7 +7,7 @@
           :width="collapsed?50:232"
           class="logo"
           :src="logoSrc"
-          style="transition: all 0.3s"
+          style="width: 211px;transition: all 0.3s"
           alt="logo"
         />
         <template #operations>
@@ -57,7 +57,7 @@
         </t-menu>
       </t-aside>
       <t-layout>
-        <t-content :style="{ height: wh - 128 + 'px' }">
+        <t-content :style="{ height: wh - 133 + 'px' }">
           <div class="container">
             <router-view :wh="wh"></router-view>
           </div>
@@ -185,5 +185,10 @@ export default {
       word-wrap: break-word;
     }
   }
+}
+</style>
+<style>
+* {
+  font-size: 17px;
 }
 </style>

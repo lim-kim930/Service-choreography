@@ -34,12 +34,12 @@
         <p
           v-if="row.workflow === null"
           class="status unhealth"
-          style="cursor: pointer; width: 120px;"
+          style="cursor: pointer; width: 140px;"
           @click="goWorkflow(row)"
         >未绑定(点击编排)</p>
         <p
           v-if="row.workflow !== null"
-          :style="{width: row.workflow.length*15 + 60 + 'px', 'margin-left': (152-(row.workflow.length*15))/2 + 'px'}"
+          :style="{width: row.workflow.length*18 + 72 + 'px', 'margin-left': (152-(row.workflow.length*15))/2 + 'px'}"
           class="status"
         >
           {{row.workflow}}
@@ -96,7 +96,7 @@
                 </t-select>
               </span>
             </t-form-item>
-            <t-form-item requiredMark :required="true" label="购买递增金额" name="name">
+            <t-form-item requiredMark :required="true" label="递增金额" name="name">
               <t-input-number
                 v-model="formData.add"
                 placeholder="请输入"
@@ -194,44 +194,46 @@ export default {
         {
           align: 'center',
           colKey: 'name',
-          title: '产品名称'
+          title: '产品名称',
+          width: 200
         },
         {
           align: 'center',
           colKey: 'status',
           title: '状态',
           cell: 'status',
-          width: 100
+          width: 120
         },
         {
           align: 'center',
           colKey: 'workflow',
           title: '工作流',
           cell: 'workflow',
-          width: 250
+          width: 290
         },
         {
           align: 'center',
           colKey: 'type',
           title: '产品类型',
-          width: 200
+          width: 180
         },
         {
           align: 'center',
           colKey: 'time',
           title: '产品存期(月)',
-          width: 200
+          width: 170
         },
         {
           align: 'center',
           colKey: 'rate',
           title: '利率',
-          width: 200
+          width: 140
         },
         {
           align: 'center',
           colKey: 'createAt',
-          title: '创建时间'
+          title: '创建时间',
+          width: 270
         },
         {
           align: 'center',
@@ -263,10 +265,6 @@ export default {
               <b>购买递增金额:</b>
             </span>
             <span class="content">{row.add}元</span>
-            <span class="title">
-              <b>结息方式:</b>
-            </span>
-            <span class="content">{row.method}</span>
           </div>
         </div>
       ),
@@ -281,7 +279,7 @@ export default {
   components: { AddIcon },
   methods: {
     openAddDialog() {
-      this.step = 1
+      this.step = 1;
       this.dialogVisible = true;
       this.formData = {
         name: "",
@@ -369,7 +367,7 @@ export default {
         method: this.formData.method, //结息方式
         index: this.productsData.length + 1,
         workflow: null,
-        createAt: date.toLocaleString()
+        createAt: "2022/4/15 01:24:14"
       });
       localStorage.setItem("productsData", JSON.stringify(this.productsData));
       setTimeout(() => {

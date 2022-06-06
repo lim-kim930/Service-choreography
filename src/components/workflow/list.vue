@@ -30,7 +30,7 @@
       :onConfirm="createOrEditFlow"
     >
       <div slot="body">
-        <t-form :data="formData" ref="form" :colon="true">
+        <t-form :data="formData" ref="form" :colon="true" labelWidth="120px">
           <t-form-item requiredMark :required="true" label="工作流名称" name="name">
             <t-input clearable v-model="formData.name" placeholder="请输入"></t-input>
           </t-form-item>

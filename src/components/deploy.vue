@@ -10,7 +10,7 @@
     >
       <template #name="{row}">
         <p
-          :style="{width: row.name.length*15 + 30 + 'px', 'margin-left': (229-(row.name.length*15))/2 + 'px','margin-top': 0,'margin-bottom': 0}"
+          :style="{width: row.name.length*18 + 36 + 'px', 'margin-left': (229-(row.name.length*15))/2 + 'px','margin-top': 0,'margin-bottom': 0}"
         >
           {{row.name}}
           <span style="color: #ccc;cursor: pointer;" @click="goProduct()">查看</span>
@@ -102,14 +102,15 @@ export default {
           align: 'center',
           colKey: 'name',
           title: '产品名称',
-          cell: 'name'
+          cell: 'name',
+          width: 300
         },
         {
           align: 'center',
           colKey: 'status',
           title: '部署状态',
           cell: 'status',
-          width: 110
+          width: 140
         },
         {
           align: 'center',
