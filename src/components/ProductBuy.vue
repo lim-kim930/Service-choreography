@@ -64,7 +64,6 @@
 <script>
 import "../weui.css"
 export default {
-  name: 'Product',
   data() {
     return {
         loading: true,

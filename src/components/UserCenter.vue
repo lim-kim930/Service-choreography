@@ -65,7 +65,6 @@
 
 <script>
 export default {
-  name: 'Product',
   data() {
     return {
       loading: true,

@@ -14,10 +14,10 @@
 </template>
 
 <script>
-import Sign from './components/Sign.vue'
-import Register from './components/Register.vue'
+import Sign from './components/SignPage.vue'
+import Register from './components/RegisterPage.vue'
 import LogIn from './components/LogIn.vue'
-import Homepage from './components/Homepage.vue'
+import Homepage from './components/AppHomepage.vue'
 
 export default {
   name: 'App',

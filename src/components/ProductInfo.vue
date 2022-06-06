@@ -72,7 +72,6 @@
 
 <script>
 export default {
-  name: 'Product',
   data() {
     return {
       product:{},

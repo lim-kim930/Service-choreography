@@ -76,7 +76,6 @@
 //引入md5
 import md5 from 'js-md5';
 export default {
-  name: 'Register',
   data() {
     return {
       animate: {//动画样式

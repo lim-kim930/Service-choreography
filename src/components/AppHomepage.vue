@@ -24,12 +24,11 @@
 </template>
 
 <script>
-import Product from './Product'
-import User from './User'
+import Product from './ProductPage'
+import User from './UserCenter'
 import ProductInfo from './ProductInfo'
 import ProductBuy from './ProductBuy'
 export default {
-  name: 'Sign',
   data() {
     return {
       active: 0,

@@ -34,7 +34,6 @@
 
 <script>
 export default {
-  name: 'Sign',
   data() {
     return {
       button: true,
