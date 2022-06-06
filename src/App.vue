@@ -1,189 +1,108 @@
 <template>
-  <div class="tdesign-demo-item--layout">
-    <t-header>
-      <t-head-menu value="item1" height="120px">
-        <img
-          slot="logo"
-          :width="collapsed?50:232"
-          class="logo"
-          :src="logoSrc"
-          style="transition: all 0.3s"
-          alt="logo"
-        />
-        <template #operations>
-          <a href="javascript:;">
-            <icon class="t-menu__operations-icon" name="mail" />
-          </a>
-          <a href="javascript:;">
-            <icon class="t-menu__operations-icon" name="user" />
-          </a>
-          <a href="javascript:;" @click="logout">
-            <icon class="t-menu__operations-icon" name="logout" />
-          </a>
-        </template>
-      </t-head-menu>
-    </t-header>
-    <t-layout>
-      <t-aside :style="{'width': (collapsed?50:232) + 'px'}">
-        <t-menu
-          theme="light"
-          v-model="activeIndex"
-          @change="indexRouteSwitch"
-          style="margin-right: 50px"
-          :height="wh + 'px'"
-          :collapsed="collapsed"
-        >
-          <t-menu-item value="productMange">
-            <icon slot="icon" name="control-platform" />产品管理
-          </t-menu-item>
-          <t-menu-item value="serviceManage">
-            <icon slot="icon" name="root-list" />原子服务管理
-          </t-menu-item>
-          <t-menu-item value="workflow">
-            <icon slot="icon" name="fork" />服务编排
-          </t-menu-item>
-          <t-menu-item value="deploy">
-            <icon slot="icon" name="server" />部署管理
-          </t-menu-item>
-          <t-menu-item value="traceSource">
-            <icon slot="icon" name="history" />业务溯源
-          </t-menu-item>
-          <t-menu-item value="usersManage">
-            <icon slot="icon" name="usergroup" />用户管理
-          </t-menu-item>
-          <template #operations>
-            <icon class="t-menu__operations-icon" :name="iconName" @click.native="changeCollapsed" />
-          </template>
-        </t-menu>
-      </t-aside>
-      <t-layout>
-        <t-content :style="{ height: wh - 128 + 'px' }">
-          <div class="container">
-            <router-view :wh="wh"></router-view>
-          </div>
-        </t-content>
-        <t-footer>Copyright @ 2019-{{new Date().getFullYear()}} All Rights Reserved</t-footer>
-      </t-layout>
-    </t-layout>
+  <div id="app" :style="{height: height - 50+'px', backgroundSize: bg + 'px'}">
+    <component
+      :is="router"
+      :wh="height"
+      :greeting="greeting"
+      :info="info"
+      :pubKey="pubKey"
+      @getRouter="getRouter"
+      @getBg="getBg"
+      @getInfo="getInfo"
+    ></component>
   </div>
 </template>
+
 <script>
-import { Icon } from 'tdesign-icons-vue';
+import Sign from './components/Sign.vue'
+import Register from './components/Register.vue'
+import LogIn from './components/LogIn.vue'
+import Homepage from './components/Homepage.vue'
 
 export default {
+  name: 'App',
   data() {
     return {
-      collapsed: false,
-      activeIndex: "dashboard",
-      logoSrc: "http://asw.limkim.cn/logo.png",
-      wh: 0
-    };
+      height: "",
+      bg: 0,
+      router: "Sign",
+      greeting: "",
+      info: "",
+      pubKey: ""
+    }
   },
-  components: { Icon },
-  computed: {
-    iconName() {
-      return this.collapsed ? 'chevron-right' : 'chevron-left';
-    },
+  components: {
+    Sign,
+    Register,
+    LogIn,
+    Homepage
   },
   methods: {
-    logout() {
-      const dialog = this.$dialog.confirm({
-        header: "警告",
-        theme: "warning",
-        body: "确定要退出登录吗?",
-        onConfirm: () => {
-          dialog.hide();
-          window.location.href = "./sign";
-        },
-        onClose: () => {
-          dialog.hide();
-        }
-      });
-    },
-    changeCollapsed() {
-      this.collapsed = !this.collapsed;
-      if (this.collapsed)
-        setTimeout(() => {
-          this.logoSrc = "http://asw.limkim.cn/logo_icon.png";
-        }, 300);
-      else
-        this.logoSrc = "http://asw.limkim.cn/logo.png";
-    },
-    indexRouteSwitch(index) {
-      switch (index) {
-        case "productMange":
-          this.$router.push("/productMange");
-          break;
-        case "workflow":
-          this.$router.push("/workflow/list");
-          break;
-        case "serviceManage":
-          this.$router.push("/serviceManage");
-          break;
-        case "deploy":
-          this.$router.push("/deploy");
-          break;
-        case "traceSource":
-          this.$router.push("/traceSource");
-          break;
-        case "usersManage":
-          this.$router.push("/usersManage");
-          break;
-      }
-    },
-    redirect() {
-      switch (this.$route.path) {
-        case "/productMange":
-          this.activeIndex = "productMange";
-          break;
-        case "/workflow/list":
-        case "/workflow/edit":
-          this.activeIndex = "workflow";
-          break;
-        case "/serviceManage":
-          this.activeIndex = "serviceManage";
-          break;
-        case "/deploy":
-          this.activeIndex = "deploy";
-          break;
-        case "/traceSource":
-          this.activeIndex = "traceSource";
-          break;
-        case "/usersManage":
-          this.activeIndex = "usersManage";
-          break;
-      }
-    },
+    //获取屏幕高度
     windowHeight() {
-      const de = document.documentElement;
+      var de = document.documentElement;
       return self.innerHeight || (de && de.clientHeight) || document.body.clientHeight;
+    },
+    //从子组件获得router改变
+    getRouter(val) {
+      this.router = val
+    },
+    getBg(val) {
+      this.bg = val
+    },
+    getInfo(val) {
+      this.info = val
     }
   },
-  mounted() {
-    this.wh = this.windowHeight() < 600 ? 600 : this.windowHeight();
-    window.onresize = () => {
-      this.wh = this.windowHeight() < 600 ? 600 : this.windowHeight();
-    };
-    this.redirect();
+  created() {
+    if(localStorage.getItem("user"))
+      this.router = "Homepage"
+    this.height = this.windowHeight() <= 710 ? 710 : this.windowHeight();
+    this.axios({
+      method: "get",
+      url: "https://api.limkim.xyz/getSysTime",
+    }).then((response) => {
+      switch (+response.data.Systime3.time.split(":")[0]) {
+        case 10: case 11:
+          this.greeting = "上午好";
+          break;
+        case 12:
+          this.greeting = "中午好";
+          break;
+        case 13: case 14: case 15: case 16: case 17: case 18:
+          this.greeting = "下午好";
+          break;
+        case 19: case 20: case 21: case 22: case 23:
+          this.greeting = "晚上好";
+          break;
+        default:
+          this.greeting = "早上好";
+          break;
+      }
+      return this.axios({ method: "get", url: "https://api.limkim.xyz/user/getPubKey" })
+    }).then((response) => {
+      this.pubKey = response.data.data.publicKey;
+    }).catch(() => {
+      this.greeting = " ";
+      this.$dialog.alert({
+        title: '提示',
+        message: '获取相关信息出错啦~, 看来程序猿要加班了＞︿＜',
+      });
+    });
   },
-  watch: {
-    $route() {
-      this.redirect();
-    }
-  },
-};
+}
 </script>
-<style lang="less" scoped>
-.t-layout {
-  .t-layout__content {
-    text-align: center;
-    padding: 24px 24px 0;
-    .container {
-      background: #fff;
-      height: 100%;
-      overflow: auto;
-      word-wrap: break-word;
-    }
+
+<style lang="less">
+#app {
+  .animate__animated {
+    --animate-duration: 600ms;
   }
+  background: url("./assets/bgc.png") no-repeat;
+  background-position: right top;
+  transition: all 0.6s;
+  -moz-transition: all 0.6s; /* Firefox 4 */
+  -webkit-transition: all 0.6s; /* Safari 和 Chrome */
+  -o-transition: all 0.6s; /* Opera */
 }
 </style>
