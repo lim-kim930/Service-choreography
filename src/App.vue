@@ -75,7 +75,7 @@ export default {
     return {
       collapsed: false,
       activeIndex: "dashboard",
-      logoSrc: "http://asw.limkim.cn/logo.png",
+      logoSrc: "./logo.png",
       wh: 0
     };
   },
@@ -189,6 +189,9 @@ export default {
 </style>
 <style>
 * {
-  font-size: 17px;
+  font-size: 19px;
+}
+.t-menu__item span {
+  font-size: 21px;
 }
 </style>

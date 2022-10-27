@@ -3,17 +3,17 @@
     <h3>部署管理</h3>
     <t-table
       rowKey="index"
-      :data="productsData"
+      :data="[...productsData[0]]"
       :columns="columns"
       :hover="true"
       :expanded-row="expandedRow"
     >
       <template #name="{row}">
         <p
-          :style="{width: row.name.length*18 + 36 + 'px', 'margin-left': (229-(row.name.length*15))/2 + 'px','margin-top': 0,'margin-bottom': 0}"
+          :style="{width: row.name.length*20 + 36 + 'px', 'margin-left': (229-(row.name.length*19))/2 + 'px','margin-top': 0,'margin-bottom': 0}"
         >
           {{row.name}}
-          <span style="color: #ccc;cursor: pointer;" @click="goProduct()">查看</span>
+          <span style="color: #ccc;cursor: pointer;width: 50px;" @click="goProduct()">查看</span>
         </p>
       </template>
       <template #status="{ row }">

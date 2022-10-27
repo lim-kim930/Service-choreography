@@ -1123,7 +1123,7 @@ export default {
       container: this.$refs.container,
       stopScrollGraph: true,
       width: 800,
-      height: 650,
+      height: 750,
       grid: true,
       isSilentMode: true //静默模式
     });
@@ -1301,7 +1301,7 @@ export default {
 }
 .workArea_content {
   display: flex;
-  height: 650px;
+  height: 750px;
 }
 .control_header {
   width: 100%;
@@ -1329,14 +1329,14 @@ export default {
 }
 .nodes {
   width: 250px;
-  height: 650px;
+  height: 750px;
   float: left;
   border: 1px solid #d8d8d8;
 }
 .flow_container {
   float: left;
   width: 800px;
-  height: 650px;
+  height: 750px;
 }
 </style>
 
@@ -1412,7 +1412,14 @@ export default {
 .jsoneditor-vue {
   display: inline-block;
   width: 500px;
-  height: 650px;
+  height: 750px;
+}
+.ace_line_group,
+.ace_line {
+  height: 23px !important;
+}
+.ace_cjk {
+  width: 21px !important;
 }
 .jsoneditor-menu {
   display: none;

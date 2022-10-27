@@ -39,7 +39,7 @@
         >未绑定(点击编排)</p>
         <p
           v-if="row.workflow !== null"
-          :style="{width: row.workflow.length*18 + 72 + 'px', 'margin-left': (152-(row.workflow.length*15))/2 + 'px'}"
+          :style="{width: row.workflow.length*20 + 72 + 'px', 'margin-left': (152-(row.workflow.length*15))/2 + 'px'}"
           class="status"
         >
           {{row.workflow}}
