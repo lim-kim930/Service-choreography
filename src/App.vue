@@ -187,11 +187,3 @@ export default {
   }
 }
 </style>
-<style>
-* {
-  font-size: 19px;
-}
-.t-menu__item span {
-  font-size: 21px;
-}
-</style>

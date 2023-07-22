@@ -1122,8 +1122,6 @@ export default {
       // ],
       container: this.$refs.container,
       stopScrollGraph: true,
-      width: 800,
-      height: 750,
       grid: true,
       isSilentMode: true //静默模式
     });
@@ -1294,14 +1292,15 @@ export default {
 }
 .workArea {
   text-align: left;
-  padding-left: 0;
+  padding: 10px 0;
+  height: 100%;
 }
 .workArea h3 {
   margin: 0;
 }
 .workArea_content {
   display: flex;
-  height: 750px;
+  height: calc(100% - 32px);
 }
 .control_header {
   width: 100%;
@@ -1329,18 +1328,21 @@ export default {
 }
 .nodes {
   width: 250px;
-  height: 750px;
+  height: 100%;
   float: left;
   border: 1px solid #d8d8d8;
 }
 .flow_container {
   float: left;
-  width: 800px;
-  height: 750px;
+  flex: 1;
+  height: 100%;
 }
 </style>
 
 <style>
+.flow_container svg {
+  display: block;
+}
 .uml-container,
 .uml-wait-container {
   border: 1px solid #d8d8d8;
@@ -1384,7 +1386,6 @@ export default {
   display: block;
   float: right;
   width: 30px;
-  font-size: 20px;
 }
 .uml-parallel-body {
   width: 180px;
@@ -1394,7 +1395,6 @@ export default {
   text-align: center;
   border-radius: 50%;
   font-weight: 700;
-  font-size: 20px;
   color: #15a4fa;
 }
 .uml-button:hover {
@@ -1410,21 +1410,11 @@ export default {
   border: 1px solid #d8d8d8 !important;
 }
 .jsoneditor-vue {
-  display: inline-block;
+  display: block;
   width: 500px;
-  height: 750px;
-}
-.ace_line_group,
-.ace_line {
-  height: 23px !important;
-}
-.ace_cjk {
-  width: 21px !important;
+  height: 100%;
 }
 .jsoneditor-menu {
   display: none;
-}
-.jsoneditor-outer {
-  height: 683px !important;
 }
 </style>
